@@ -93,7 +93,6 @@ router.delete(
 );
 
 // MESIN
-// get all
 router.get(
 	"/data_mesin",
 	[
@@ -102,7 +101,6 @@ router.get(
 	],
 	mesinController.getAll
 );
-// GET by pk
 router.get(
 	"/data_mesin/:kode_mesin",
 	[
@@ -111,7 +109,6 @@ router.get(
 	],
 	mesinController.getByKode
 );
-// create
 router.post(
 	"/data_mesin",
 	[

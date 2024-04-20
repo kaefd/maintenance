@@ -6,8 +6,12 @@ const sequelize = require('../../connect');
 
 // GET ALL SPAREPART & PARAM
 const getAll = async (req, res) => {
+    const { limit = 10, page = 1 } = req.query;
+	const offset = (page - 1) * limit;
     try {
         const sparepart = await Sparepart.findAll({
+            limit: parseInt(limit),
+            offset: parseInt(offset),
             where: {
                 status: "true",
             }

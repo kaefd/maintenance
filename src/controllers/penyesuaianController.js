@@ -8,6 +8,8 @@ const sequelize = require("../../connect");
 
 // GET ALL
 const getAll = async (req, res) => {
+	const { limit = 10, page = 1 } = req.query;
+	const offset = (page - 1) * limit;
 	try {
 		let whereCondition = {};
 		if (req.query.no_penyesuaian) {
@@ -17,6 +19,8 @@ const getAll = async (req, res) => {
 		}
 		whereCondition.status = "true";
 		const penyesuaian = await Penyesuaian.findAll({
+			limit: parseInt(limit),
+			offset: parseInt(offset),
 			where: whereCondition,
 		});
 		if (!penyesuaian) {

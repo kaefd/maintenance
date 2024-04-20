@@ -4,8 +4,13 @@ const LogSparepart = require('../models/logSparepartModel')
 
 // GET ALL LOG SPAREPART
 const getAll = async (req, res) => {
+    const { limit = 10, page = 1 } = req.query;
+	const offset = (page - 1) * limit;
     try {
-        const logSparepart = await LogSparepart.findAll()
+        const logSparepart = await LogSparepart.findAll({
+            limit: parseInt(limit),
+			offset: parseInt(offset),
+        })
         res.json(logSparepart)
     } catch (error) {
         res.status(500).json({ error: error })

@@ -1,18 +1,20 @@
-const { Op } = require("sequelize");
 const { validationResult } = require("express-validator");
 const Mesin = require("../models/mesinModel");
-const LogUser = require("../models/logUser");
 const logUser = require("./logUserController");
 const sequelize = require("../../connect");
 
 // GET ALL
 const getAll = async (req, res) => {
+	const { limit = 10, page = 1 } = req.query;
+	const offset = (page - 1) * limit;
 	try {
 		const mesin = await Mesin.findAll({
+			limit: parseInt(limit),
+			offset: parseInt(offset),
 			where: {
 				status: "true",
 			},
-		});
+		})
 		if (!mesin) return res.status(404).json({
 			status: "error",
 			code: 404,
@@ -81,7 +83,7 @@ const createMesin = async (req, res) => {
 				kode_mesin: kode_mesin.toString(),
 				nama_mesin: nama_mesin.toString(),
 				keterangan: keterangan ? keterangan.toString() : "",
-				tgl_beli,
+				tgl_beli: tgl_beli,
 				supplier: supplier.toString(),
 				created_by: req.session.user,
 				created_date: new Date().toISOString(),
@@ -91,6 +93,7 @@ const createMesin = async (req, res) => {
 			},
 			{ transaction: transaction }
 		);
+		
 		// CREATE LOG USER
 		const log_user = await logUser.createLog(
 			"Menambah data mesin",

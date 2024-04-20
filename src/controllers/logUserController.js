@@ -2,8 +2,13 @@ const LogUser = require('../models/logUser')
 
 // GET ALL LOG USER
 const getAll = async (req, res) => {
+    const { limit = 10, page = 1 } = req.query;
+	const offset = (page - 1) * limit;
     try {
-        const logUser = await LogUser.findAll()
+        const logUser = await LogUser.findAll({
+            limit: parseInt(limit),
+			offset: parseInt(offset),
+        })
         // RESPONSE
 		res.status(200).json({
 			status: "success",

@@ -13,6 +13,8 @@ const getAll = async (req, res) => {
 	// MODEL ASSOSIATION
 	Mesin.hasMany(Masalah, {foreignKey: 'kode_mesin'})
 	Masalah.belongsTo(Mesin, {foreignKey: 'kode_mesin'})
+	const { limit = 10, page = 1 } = req.query;
+	const offset = (page - 1) * limit;
 	try {
 		let whereCondition = {};
 		if (req.query.no_masalah) {
@@ -23,6 +25,8 @@ const getAll = async (req, res) => {
 		}
 		whereCondition.status = "true";
 		let masalah = await Masalah.findAll({
+			limit: parseInt(limit),
+			offset: parseInt(offset),
 			where: whereCondition,
 			include: [{
                 model: Mesin,

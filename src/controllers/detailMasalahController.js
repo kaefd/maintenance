@@ -13,6 +13,8 @@ const getAll = async (req, res) => {
 	// MODEL ASSOSIATION
 	Sparepart.hasMany(DetailMasalah, {foreignKey: 'kode_sparepart'})
 	DetailMasalah.belongsTo(Sparepart, {foreignKey: 'kode_sparepart'})
+	const { limit = 10, page = 1 } = req.query;
+	const offset = (page - 1) * limit;
 	try {
 		let whereCondition = {};
 		if (req.query.no_masalah) {
@@ -22,6 +24,8 @@ const getAll = async (req, res) => {
 			whereCondition.kode_sparepart = req.query.kode_sparepart
 		}
 		let d_masalah = await DetailMasalah.findAll({
+			limit: parseInt(limit),
+			offset: parseInt(offset),
 			where: whereCondition,
 			include: [{
                 model: Sparepart,
@@ -65,7 +69,7 @@ const getByKode = async (req, res) => {
 	// PARAM
 	const no_masalah = req.params.no_masalah;
 	try {
-		let d_masalah = await DetailMasalah.findOne({
+		let d_masalah = await DetailMasalah.findAll({
 			where: {
 				no_masalah: no_masalah
 			},
@@ -83,14 +87,16 @@ const getByKode = async (req, res) => {
 			});
 		}
 		// new obj
-		const new_detail = {
-			no_masalah: d_masalah.no_masalah,
-			no_urut: d_masalah.no_urut,
-			kode_sparepart: d_masalah.kode_sparepart,
-			nama_sparepart: d_masalah.Sparepart.nama_sparepart,
-			jumlah: d_masalah.jumlah,
-			keterangan: d_masalah.keterangan
-		}
+		const new_detail = d_masalah.map(item => {
+			return {
+				no_masalah: item.no_masalah,
+				no_urut: item.no_urut,
+				kode_sparepart: item.kode_sparepart,
+				nama_sparepart: item.Sparepart.nama_sparepart,
+				jumlah: item.jumlah,
+				keterangan: item.keterangan
+			}
+		})
 		// RESPONSE
 		res.status(200).json({
 			status: "success",

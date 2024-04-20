@@ -23,7 +23,6 @@ const authUser = (user) => {
   return async (req, res, next) => {
     const role = await UserModel.findByPk(req.session.user)
     const nameRole = await RoleModel.findByPk(role.role_id)
-    console.log(nameRole);
     if(!user.includes((nameRole.nama_role).toLowerCase())) return res.sendStatus(403)
     next()
   }
