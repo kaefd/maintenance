@@ -30,8 +30,7 @@ app.use((req, res, next) => {
 
 app.use('/api', routes);
 
-// const port = process.env.PORT || 3000;
-const port = 36789;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
 });
