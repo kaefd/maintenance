@@ -3,7 +3,6 @@ const { validationResult } = require("express-validator")
 const { formaterPK } = require("../utils/utils")
 const detailMasalah = require("./detailMasalahController")
 const logUser = require("./logUserController")
-const logMesin = require("./logMesinController")
 const Masalah = require("../models/masalahModel")
 const DetailMasalah = require("../models/masalahModel")
 const sequelize = require("../../connect")
@@ -13,9 +12,15 @@ const masalah = require("../modules/masalah_head")
 
 // GET ALL
 const getAll = async (req, res) => {
+    let state = masalah
 	// MODEL ASSOSIATION
-	Mesin.hasMany(Masalah, {foreignKey: 'kode_mesin'})
-	Masalah.belongsTo(Mesin, {foreignKey: 'kode_mesin'})
+    let assoc_model = state.config.assoc.model
+    let rel = state.config.assoc.relation
+    let model = state.config.model
+    let fk = state.config.assoc.fk
+
+	[assoc_model][rel[0]]([model], {foreignKey: fk})
+	[model][rel[1]](model, {foreignKey: fk})
 
 	const { limit = 10, page = 1 } = req.query;
 	const offset = (page - 1) * limit;
@@ -23,7 +28,7 @@ const getAll = async (req, res) => {
 		let whereCondition = Object.fromEntries(
 			Object.entries(req.query).filter(([key, value]) => key != "limit" && key != "page")
 		);
-		whereCondition.status = whereCondition.status ? whereCondition.status : ['open', 'close']
+		whereCondition.status = ['open', 'close']
 		let masalah = await Masalah.findAll({
 			limit: parseInt(limit),
 			offset: parseInt(offset),
@@ -55,8 +60,8 @@ const getAll = async (req, res) => {
 				penyebab: m.penyebab,
 				keterangan_masalah: m.keterangan_masalah,
 				penanganan: m.penanganan,
-				user_penanganan: m.user_penanganan,
 				tgl_penanganan: m.tgl_penanganan,
+				waktu_penanganan: m.waktu_penanganan,
 				created_by: m.created_by,
 				created_date: m.created_date,
 				deleted_by: m.deleted_by,
@@ -161,6 +166,7 @@ const getByKode = async (req, res) => {
 			keterangan_masalah: masalah.keterangan_masalah,
 			penanganan: masalah.penanganan,
 			tgl_penanganan: masalah.tgl_penanganan,
+			waktu_penanganan: masalah.waktu_penanganan,
 			created_by: masalah.created_by,
 			created_date: masalah.created_date,
 			deleted_by: masalah.deleted_by,
@@ -212,23 +218,14 @@ const createMasalah = async (req, res) => {
             keterangan_masalah: keterangan_masalah.toString(),
 			tgl_penanganan: "",
 			penanganan: "",
+			waktu_penanganan: 0,
             created_by: req.session.user,
-            user_penanganan: "",
             created_date: new Date().toISOString(),
             deleted_by: "",
             deleted_date: new Date(1).toISOString(),
             status: "open"
         },
 		{ transaction: transaction })
-		// CREATE LOG MESIN
-		const log_mesin = await logMesin.createLog(
-			kode_mesin,
-			"bermasalah",
-			no_masalah,
-			req.session.user,
-			transaction
-		)
-		if (log_mesin.error) throw log_mesin.error;
         // CREATE LOG USER
 		const log_user = await logUser.createLog(
 			"Menambah data masalah",
@@ -259,7 +256,7 @@ const createMasalah = async (req, res) => {
 const createPenanganan = async (req, res) => {
     // CEK PAYLOADS
     const no_masalah = req.params.no_masalah;
-	const { penanganan, detail } = req.body;
+	const { penanganan, waktu_penanganan, detail } = req.body;
     // VALIDASI
 	let errors = validationResult(req).array().map(er => { return er.msg || er.message })
 	if (errors != "") return res.status(400).json({
@@ -281,24 +278,14 @@ const createPenanganan = async (req, res) => {
 		const updt = await masalah.update({
 			penanganan: penanganan,
 			tgl_penanganan: new Date().toISOString(),
-			user_penanganan: req.session.user,
+			waktu_penanganan: waktu_penanganan,
 			status: "close"
 		},
 		{ transaction: transaction })
 		updt.save()
 		// POST DETAIL
 		let dt = await detailMasalah.createDetailMasalah(no_masalah, detail, transaction)
-		console.log(dt);
 		if(dt.error) throw dt.error
-		// CREATE LOG MESIN
-		const log_mesin = await logMesin.createLog(
-			masalah.kode_mesin,
-			"ditangani",
-			no_masalah,
-			req.session.user,
-			transaction
-		)
-		if (log_mesin.error) throw log_mesin.error;
 		// CREATE LOG USER
 		const log_user = await logUser.createLog(
 			"Menambahkan penanganan",
@@ -342,6 +329,7 @@ const deletePenanganan = async (req, res) => {
 		await masalah.update({
 			penanganan: '',
 			tgl_penanganan: '',
+			waktu_penanganan: '',
 			status: "open"
 		},
 		{ transaction: transaction })
@@ -349,14 +337,6 @@ const deletePenanganan = async (req, res) => {
 
 		const batal_detail = await detailMasalah.deleteDetailMasalah(no_masalah, req.session.user, transaction)
 		if(batal_detail.error) throw batal_detail.error
-		// DELETE LOG MESIN
-		const del = await logMesin.deleteLog(
-			masalah.kode_mesin,
-			"ditangani",
-			no_masalah,
-			transaction
-		)
-		if (del.error) throw del.error;
 		// CREATE LOG USER
 		const log_user = await logUser.createLog(
 			"Membatalkan penanganan",
@@ -400,6 +380,7 @@ const deleteMasalah = async (req, res) => {
 		// batal detail
 		const batal_detail = await detailMasalah.deleteDetailMasalah(no_masalah, req.session.user, transaction)
 		if(batal_detail.error) throw batal_detail.error
+		console.log(batal_detail);
 		// UPDATE VALUE
 		masalah.update({
 			deleted_date: new Date().toISOString(),
@@ -407,22 +388,6 @@ const deleteMasalah = async (req, res) => {
 			status: "false",
 		}, { transaction: transaction })
 		masalah.save();
-		// DELETE LOG MESIN PENAGANAN
-		const del_penanganan = await logMesin.deleteLog(
-			masalah.kode_mesin,
-			"ditangani",
-			no_masalah,
-			transaction
-		)
-		if (del_penanganan.error) throw del_penanganan.error;
-		// DELETE LOG MESIN MASALAH
-		const del = await logMesin.deleteLog(
-			masalah.kode_mesin,
-			"bermasalah",
-			no_masalah,
-			transaction
-		)
-		if (del.error) throw del.error;
 		// CREATE LOG USER
 		const log_user = await logUser.createLog(
 			"Membatalkan masalah",

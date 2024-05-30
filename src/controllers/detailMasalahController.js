@@ -5,8 +5,10 @@ const DetailMasalah = require("../models/detailMasalahModel");
 const LogSparepart = require("../models/logSparepartModel");
 const LogUser = require("../models/logUser");
 const logSparepart = require("../controllers/logSparepartController");
+const stokSparepart = require("../controllers/stokSparepart");
 const sequelize = require("../../connect");
 const Sparepart = require("../models/sparepartModel");
+const LogSparepartModel = require("../models/logSparepartModel");
 
 // GET ALL
 const getAll = async (req, res) => {
@@ -47,17 +49,26 @@ const getAll = async (req, res) => {
 			jumlah: d.jumlah,
 			keterangan: d.keterangan
 		}})
+		const total = await DetailMasalah.findAll({
+			where: whereCondition,
+		})
+		var re = page > 1 ? total.length - (page * limit - limit) -  new_detail.length : total.length - new_detail.length
 		// RESPONSE
 		res.status(200).json({
 			status: "success",
 			code: 200,
+			page: parseInt(page),
+			limit: parseInt(limit),
+			rows: new_detail.length,
+			totalData: total.length,
+			remainder: re || 0,
 			data: new_detail,
 		});
 	} catch (error) {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error|| "Internal server error",
+			message: error|| ["Internal server error"],
 		});
 	}
 };
@@ -101,13 +112,18 @@ const getByKode = async (req, res) => {
 		res.status(200).json({
 			status: "success",
 			code: 200,
+			page: 1,
+			limit: new_detail.length,
+			rows: new_detail.length,
+			totalData: new_detail.length,
+			remainder: 0,
 			data: new_detail,
 		});
 	} catch (error) {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error|| "Internal server error",
+			message: error|| ["Internal server error"],
 		});
 	}
 };
@@ -118,12 +134,11 @@ const createDetailMasalah = async (no_masalah, detail, transaction) => {
 		let  p = ''
 		// VALIDASI
 		for (let i = 0; i < detail.length; i++) {
-			console.log(typeof detail[i].jumlah);
-			if(detail[i].kode_sparepart == undefined || detail[i].kode_sparepart == '' || detail[i].kode_sparepart.kode_sparepart == 0) throw 'kode sparepart tidak boleh kosong'
-			if(detail[i].jumlah == undefined || detail[i].jumlah == '' || detail[i].jumlah.jumlah == 0) throw `jumlah ${detail[i].kode_sparepart} tidak boleh kosong`
-			if(typeof detail[i].jumlah != "number") throw `jumlah ${detail[i].kode_sparepart} harus berupa angka`
-			if(detail[i].keterangan == undefined || detail[i].keterangan == '' || detail[i].keterangan.keterangan == 0) throw `keterangan ${detail[i].kode_sparepart} tidak boleh kosong`
-			if(utils.isDuplicated('kode_sparepart', detail[i].kode_sparepart, detail)) throw 'kode sparepart tida boleh sama'
+			if(detail[i].kode_sparepart == undefined || detail[i].kode_sparepart == '' || detail[i].kode_sparepart.kode_sparepart == 0) throw ['kode sparepart tidak boleh kosong']
+			if(detail[i].jumlah == undefined || detail[i].jumlah == '' || detail[i].jumlah.jumlah == 0) throw [`jumlah ${detail[i].kode_sparepart} tidak boleh kosong`]
+			// if(typeof detail[i].jumlah != "number") throw `jumlah ${detail[i].kode_sparepart} harus berupa angka`
+			if(detail[i].keterangan == undefined || detail[i].keterangan == '' || detail[i].keterangan.keterangan == 0) throw [`keterangan ${detail[i].kode_sparepart} tidak boleh kosong`]
+			if(utils.isDuplicated('kode_sparepart', detail[i].kode_sparepart, detail)) throw ['kode sparepart tidak boleh sama']
 			// CHECK STOCK
 			let log_sparepart = await LogSparepart.findOne({
 				limit: 1,
@@ -148,6 +163,8 @@ const createDetailMasalah = async (no_masalah, detail, transaction) => {
 			let n_stok_akhir = log_sparepart.stok_akhir - detail[i].jumlah
 			let post_sparepart = await logSparepart.createLog(detail[i].kode_sparepart, kategori, keterangan, stok_awal, stok_masuk, stok_keluar, n_stok_akhir, transaction)
 			if(post_sparepart.error) throw post_sparepart
+			let updtStokSp = await stokSparepart.updateStok(detail[i].kode_sparepart, n_stok_akhir, transaction)
+			if(updtStokSp.error) throw updtStokSp
 			// POST DETAIL
 			p = await DetailMasalah.create({
 				no_masalah: no_masalah,
@@ -169,35 +186,46 @@ const createDetailMasalah = async (no_masalah, detail, transaction) => {
 const deleteDetailMasalah = async (no_masalah, user, transaction) => {
 	// CHECK DATA
 	const data = await DetailMasalah.findAll({ where: {no_masalah: no_masalah} })
+	if(data == "") return true
 	// SESUAIKAN STOK
 	// GET STOK SEMUA SPAREPART
 	if(data != '') {
 		for (let i = 0; i < data.length; i++) {
-			// kembalikan stok
-			let log = await LogSparepart.findOne({
-				where: {kode_sparepart: data[i].kode_sparepart},
+			// buat log
+			const StokByKode = await LogSparepartModel.findOne({
 				limit: 1,
-				order: [["id_log_sparepart", "DESC"]],
-			})
-			log.update({
-				stok_akhir: log.stok_akhir + data[i].jumlah
-			}, { transaction: transaction })
-			log.save()
-			// hapus log
-			await LogSparepart.destroy({ 
 				where: {
-					keterangan: data[i].no_masalah,
-					kode_sparepart: data[i].kode_sparepart
+					kode_sparepart: {
+						[Op.eq]: data[i].kode_sparepart,
+					},
+	
 				},
-				transaction: transaction
-			})
+				order: [["id_log_sparepart", "DESC"]],
+			});
+			const s_awal = StokByKode.stok_akhir
+			const stok_akhir = s_awal + data[i].jumlah
+			const s_masuk = Number(data[i].jumlah)
+			const s_keluar = 0
+			await LogSparepartModel.create({
+				tanggal: new Date().toISOString(),
+				kode_sparepart: data[i].kode_sparepart,
+				keterangan: no_masalah,
+				kategori: "Batal keluar",
+				stok_awal: s_awal,
+				stok_masuk: s_masuk,
+				stok_keluar: s_keluar,
+				stok_akhir: stok_akhir
+			},
+			{ transaction: transaction });
+			let updtStokSp = await stokSparepart.updateStok(data[i].kode_sparepart, stok_akhir, transaction)
+			if(updtStokSp.error) return updtStokSp
 		}
 		// delete detail
 		const del = await DetailMasalah.destroy({ where: { no_masalah: no_masalah }, transaction: transaction });
-		if(!del) return {error: 'gagal membatalkan detail masalah'}
+		if(!del) return {error: ['gagal membatalkan detail masalah']}
 	}
 	// HAPUS DETAIL
-	return {success: 'berhasil dibatalkan'}
+	return {success: ['berhasil dibatalkan']}
 }
 
 module.exports = {

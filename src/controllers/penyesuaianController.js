@@ -5,6 +5,8 @@ const LogSparepartModel = require("../models/logSparepartModel");
 const logUser = require("./logUserController");
 const { formaterPK } = require("../utils/utils");
 const sequelize = require("../../connect");
+const Sparepart = require("../models/sparepartModel");
+const stokSparepart = require("../controllers/stokSparepart")
 
 // GET ALL
 const getAll = async (req, res) => {
@@ -22,28 +24,77 @@ const getAll = async (req, res) => {
 			limit: parseInt(limit),
 			offset: parseInt(offset),
 			where: whereCondition,
+			order: [["no_penyesuaian", "DESC"]],
 		});
+		const total = await Penyesuaian.findAll({
+			where: {
+				status: "true",
+			},
+		})
 		if (!penyesuaian) {
 			return res.status(404).json({
 				status: "error",
 				code: 404,
-				message: "data tidak ditemukan"
+				message: ["data tidak ditemukan"]
 			});
 		}
+		var re = page > 1 ? total - (page * limit - limit) -  penyesuaian.length : total.length - penyesuaian.length
 		// RESPONSE
 		res.status(200).json({
 			status: "success",
 			code: 200,
+			page: parseInt(page),
+			limit: parseInt(limit),
+			rows: penyesuaian.length,
+			totalData: total.length,
+			remainder: re || 0,
 			data: penyesuaian,
 		});
 	} catch (error) {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error|| "Internal server error",
+			message: error|| ["Internal server error"],
 		});
 	}
 };
+const getSearch = async (req, res) => {
+	const input = req.query.search
+	try {
+		let pny = await Penyesuaian.findAll({
+			where: {
+				status: "true",
+			},
+			order: [["no_penyesuaian", "DESC"]],
+		})
+		if (!pny) return res.status(404).json({
+			status: "error",
+			code: 404,
+			message: ["data tidak ditemukan"]
+		});
+		console.log('pny');
+		let nwpny = pny.map(i => i.dataValues)
+		const search = input ? nwpny.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(input.toLowerCase()))) : pny
+		console.log(search);
+		// RESPONSE
+		res.status(200).json({
+			status: "success",
+			code: 200,
+			page: 1,
+			limit: parseInt(search.length),
+			rows: search.length,
+			totalData: search.length,
+			remainder: 0,
+			data: search,
+		});
+	} catch (error) {
+		res.status(500).json({
+			status: "error",
+			code: 500,
+			message: error|| ["Internal server error"],
+		});
+	}
+}
 // GET PENYESUAIAN BY NO
 const getByKode = async (req, res) => {
 	const no_penyesuaian = req.params.no_penyesuaian;
@@ -53,7 +104,7 @@ const getByKode = async (req, res) => {
 			return res.status(404).json({
 				status: "error",
 				code: 404,
-				message: "No penyesuaian tidak ditemukan"
+				message: ["No penyesuaian tidak ditemukan"]
 			});
 		}
 		// RESPONSE
@@ -66,7 +117,7 @@ const getByKode = async (req, res) => {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error|| "Internal server error",
+			message: error|| ["Internal server error"],
 		});
 	}
 };
@@ -84,7 +135,7 @@ const createPenyesuaian = async (req, res) => {
 	if(kategori != "Barang masuk" && kategori != 'Barang keluar') return res.status(400).json({
 		status: "error",
 		code: 400,
-		message: "Kategori salah"
+		message: ["Kategori salah"]
 	});
 	// START TRANSACTION
 	const transaction = await sequelize.transaction()
@@ -105,6 +156,13 @@ const createPenyesuaian = async (req, res) => {
 			status: "true",
 		},
 		{ transaction: transaction });
+		// CEK SPAREPART
+		const sp = await Sparepart.findOne({
+			where: {
+				kode_sparepart: kode_sparepart
+			}
+		})
+		if(!sp) throw [`${kode_sparepart} belum terdaftar`]
 		// NILAI STOK AKHIR
 		const log = await LogSparepartModel.findOne({
 			limit: 1,
@@ -113,9 +171,8 @@ const createPenyesuaian = async (req, res) => {
 			},
 			order: [["id_log_sparepart", "DESC"]],
 		});
-		// VALIDASI
-		if(!log) throw `${kode_sparepart} belum terdaftar`
-		let stok_awal = log != "" ? log.stok_akhir : "";
+		let stok_awal = !log ? "" : log.stok_akhir;
+		let mess = "";
 		// POST DATA
 		if (kategori == "Barang masuk") {
 			// POST LOG SPAREPART
@@ -135,21 +192,25 @@ const createPenyesuaian = async (req, res) => {
 				stok_akhir: stok_akhir
 			},
 			{ transaction: transaction });
+			// UPDATE STOK
+			let updtStokSp = await stokSparepart.updateStok(kode_sparepart, stok_akhir, transaction)
+			if(updtStokSp.error) throw updtStokSp
 			// CREATE LOG USER
+			mess = "Menambah data barang masuk penyesuaian stok"
 			const log_user = await logUser.createLog(
-				"Menambah data barang masuk penyesuaian stok",
+				mess,
 				no_penyesuaian,
 				req.session.user,
 				transaction
 			);
-			if (log_user.error) throw log_user.error;
+			if (log_user.error) throw [log_user.error];
 		}
 		if (kategori == "Barang keluar") {
 			// VALIDASI
-			if (stok_awal == "") throw `Stok ${kode_sparepart} kosong`
+			if (stok_awal == "") throw [`Stok ${kode_sparepart} kosong`]
 			
 			const stok_akhir = stok_awal - Number(jumlah);
-			if (stok_akhir < 0) throw `Stok akhir ${kode_sparepart} tidak mecukupi`
+			if (stok_akhir < 0) throw [`Stok akhir ${kode_sparepart} tidak mecukupi`]
 
 			const s_masuk = 0
 			const s_keluar = Number(jumlah)
@@ -165,9 +226,13 @@ const createPenyesuaian = async (req, res) => {
 				stok_akhir: stok_akhir
 			},
 			{ transaction: transaction });
+			// UPDATE STOK
+			let updtStokSp = await stokSparepart.updateStok(kode_sparepart, stok_akhir, transaction)
+			if(updtStokSp.error) throw updtStokSp
 			// CREATE LOG USER
+			mess = "Menambah data barang keluar penyesuaian stok"
 			const log_user = await logUser.createLog(
-				"Menambah data barang keluar penyesuaian stok",
+				mess,
 				no_penyesuaian,
 				req.session.user,
 				transaction
@@ -178,6 +243,7 @@ const createPenyesuaian = async (req, res) => {
 		await transaction.commit()
 		res.status(201).json({
 			status: "success",
+			message: [mess],
 			code: 201,
 			data: newPenyesuaian,
 		});
@@ -186,7 +252,7 @@ const createPenyesuaian = async (req, res) => {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error|| "Internal server error",
+			message: error|| ["Internal server error"],
 		});
 	}
 };
@@ -199,12 +265,12 @@ const deletePenyesuaian = async (req, res) => {
 	if (!penyesuaian) return res.status(404).json({
 		status: "error",
 		code: 404,
-		message: "No penyesuaian tidak ditemukan"
+		message: ["No penyesuaian tidak ditemukan"]
 	});
 	if(penyesuaian.kategori != "Barang masuk" && penyesuaian.kategori != "Barang keluar") return res.status(500).json({
 		status: "error",
 		code: 500,
-		message: "Gagal menghapus data"
+		message: ["Gagal menghapus data"]
 	});
 	// START TRANSACTION
 	const transaction = await sequelize.transaction()
@@ -224,42 +290,50 @@ const deletePenyesuaian = async (req, res) => {
 				kode_sparepart: {
 					[Op.eq]: penyesuaian.kode_sparepart,
 				},
+
 			},
 			order: [["id_log_sparepart", "DESC"]],
 		});
 		if (penyesuaian.kategori == "Barang masuk") {
-			// CEK STOK
-			if (StokByKode.stok_akhir - penyesuaian.jumlah < 0) {
-				throw `stok akhir ${penyesuaian.kode_sparepart} tidak mencukupi`
-			}
-			// UPDATE NILAI STOK AKHIR
-			await StokByKode.update(
-				{ stok_akhir: StokByKode.stok_akhir - penyesuaian.jumlah },
-				{ transaction: transaction }
-			);
-			StokByKode.save();
-			// HAPUS LOG SPAREPART LAMA
-			await LogSparepartModel.destroy({
-				where: {
-					keterangan: penyesuaian.no_penyesuaian,
-				},
-				transaction: transaction
-			});
+			const s_awal = StokByKode.stok_akhir
+			const stok_akhir = s_awal - penyesuaian.jumlah
+			const s_masuk = 0
+			const s_keluar = Number(penyesuaian.jumlah)
+
+			if(stok_akhir < 0 ) throw [`Stok ${StokByKode.kode_sparepart} tidak mencukupi`]
+			await LogSparepartModel.create({
+				tanggal: new Date().toISOString(),
+				kode_sparepart: StokByKode.kode_sparepart,
+				keterangan: kode,
+				kategori: "Batal masuk",
+				stok_awal: s_awal,
+				stok_masuk: s_masuk,
+				stok_keluar: s_keluar,
+				stok_akhir: stok_akhir
+			},
+			{ transaction: transaction });
+			let updtStokSp = await stokSparepart.updateStok(StokByKode.kode_sparepart, stok_akhir, transaction)
+			if(updtStokSp.error) throw updtStokSp
+			
 		}
 		if(penyesuaian.kategori == "Barang keluar") {
-			// UPDATE NILAI STOK AKHIR
-			await StokByKode.update(
-				{ stok_akhir: StokByKode.stok_akhir + penyesuaian.jumlah },
-				{ transaction: transaction }
-			);
-			StokByKode.save();
-			// HAPUS LOG SPAREPART LAMA
-			await LogSparepartModel.destroy({
-				where: {
-					keterangan: penyesuaian.no_penyesuaian,
-				},
-				transaction: transaction
-			});
+			const s_awal = StokByKode.stok_akhir
+			const stok_akhir = s_awal + penyesuaian.jumlah
+			const s_masuk = Number(penyesuaian.jumlah)
+			const s_keluar = 0
+			await LogSparepartModel.create({
+				tanggal: new Date().toISOString(),
+				kode_sparepart: StokByKode.kode_sparepart,
+				keterangan: kode,
+				kategori: "Batal keluar",
+				stok_awal: s_awal,
+				stok_masuk: s_masuk,
+				stok_keluar: s_keluar,
+				stok_akhir: stok_akhir
+			},
+			{ transaction: transaction });
+			let updtStokSp = await stokSparepart.updateStok(StokByKode.kode_sparepart, stok_akhir, transaction)
+			if(updtStokSp.error) throw updtStokSp
 		}
 		// POST LOG USER
 		// CREATE LOG USER
@@ -276,20 +350,21 @@ const deletePenyesuaian = async (req, res) => {
 		res.status(201).json({
 			status: "success",
 			code: 201,
-			message: "Data berhasil dibatalkan",
+			message: ["Data berhasil dibatalkan"],
 		});
 	} catch (error) {
 		await transaction.rollback()
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || "gagal menambahkan data",
+			message: error || ["gagal menambahkan data"],
 		});
 	}
 };
 
 module.exports = {
 	getAll,
+	getSearch,
 	getByKode,
 	createPenyesuaian,
 	deletePenyesuaian,

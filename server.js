@@ -23,14 +23,15 @@ app.use(session({
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
-  // res.header("Access-Control-Allow-Methods", "GET,PUT,PATCH,POST,DELETE");
-  res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, authorization");
+  res.header("Access-Control-Allow-Methods", "GET,PUT,PATCH,POST,DELETE");
+  res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Content-length, authorization");
   next()
 })
 
 app.use('/api', routes);
 
-const port = process.env.PORT || 3000;
+// const port = process.env.PORT || 3000;
+const port = 36789;
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
 });

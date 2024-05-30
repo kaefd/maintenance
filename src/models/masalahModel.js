@@ -7,6 +7,11 @@ const Masalah = sequelize.define('Masalah', {
         autoIncrement: false,
         primaryKey: true
     },
+    nama_kategori: {
+        type: DataTypes.STRING,
+        autoIncrement: false,
+        allowNull: false,
+    },
     tgl_masalah: {
         type: DataTypes.DATEONLY,
         autoIncrement: false,
@@ -37,12 +42,12 @@ const Masalah = sequelize.define('Masalah', {
         autoIncrement: false,
         allowNull: true
     },
-    waktu_penanganan: {
-        type: DataTypes.INTEGER,
-        autoIncrement: false,
-        allowNull: true
-    },
     created_by: {
+        type: DataTypes.STRING,
+        autoIncrement: false,
+        allowNull: false
+    },
+    user_penanganan: {
         type: DataTypes.STRING,
         autoIncrement: false,
         allowNull: false
@@ -70,7 +75,7 @@ const Masalah = sequelize.define('Masalah', {
     
 },
 {
-    tableName: 'masalah',
+    tableName: 'masalah_head',
     timestamps: false
 })
 

@@ -14,28 +14,77 @@ const getAll = async (req, res) => {
             offset: parseInt(offset),
             where: {
                 status: "true",
-            }
+            },
+            order: [["kode_sparepart", "DESC"]],
         })
+        const total = await Sparepart.findAll({
+			where: {
+				status: "true",
+			},
+		})
         if(!sparepart) {
             return res.status(404).json({
                 status: "error",
                 code: 404,
-                message: "data tidak ditemukan"
+                message: ["data tidak ditemukan"]
             });
         }
+        var re = page > 1 ? total - (page * limit - limit) -  sparepart.length : total.length - sparepart.length
         // RESPONSE
 		res.status(200).json({
 			status: "success",
 			code: 200,
+			page: parseInt(page),
+			limit: parseInt(limit),
+			rows: sparepart.length,
+			totalData: total.length,
+			remainder: re || 0,
 			data: sparepart,
 		});
     } catch (error) {
         res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || "Internal server error",
+			message: error || ["Internal server error"],
 		});
     }
+}
+const getSearch = async (req, res) => {
+	const input = req.query.search
+	try {
+		let sparepart = await Sparepart.findAll({
+			where: {
+				status: "true",
+			},
+            order: [["kode_sparepart", "DESC"]],
+		})
+		if (!sparepart) return res.status(404).json({
+			status: "error",
+			code: 404,
+			message: ["data tidak ditemukan"]
+		});
+		console.log('sparepart');
+		let nwsparepart = sparepart.map(i => i.dataValues)
+		const search = input ? nwsparepart.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(input.toLowerCase()))) : sparepart
+		console.log(search);
+		// RESPONSE
+		res.status(200).json({
+			status: "success",
+			code: 200,
+			page: 1,
+			limit: parseInt(search.length),
+			rows: search.length,
+			totalData: search.length,
+			remainder: 0,
+			data: search,
+		});
+	} catch (error) {
+		res.status(500).json({
+			status: "error",
+			code: 500,
+			message: error|| ["Internal server error"],
+		});
+	}
 }
 // GET SPAREPART BY KODE
 const getByKode = async (req, res) => {
@@ -46,7 +95,7 @@ const getByKode = async (req, res) => {
             return res.status(404).json({
                 status: "error",
                 code: 404,
-                message: "data tidak ditemukan"
+                message: ["data tidak ditemukan"]
             });
         }
         res.status(200).json({
@@ -58,7 +107,7 @@ const getByKode = async (req, res) => {
         res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || "Internal server error",
+			message: error || ["Internal server error"],
 		});
     }
 }
@@ -82,7 +131,7 @@ const createSparepart = async (req, res) => {
     if(existKode) return res.status(400).json({
 		status: "error",
 		code: 400,
-		message: "Kode sparepart sudah terdaftar"
+		message: ["Kode sparepart sudah terdaftar"]
 	});
     // START TRANSACTION
     const transaction = await sequelize.transaction()
@@ -115,7 +164,7 @@ const createSparepart = async (req, res) => {
         res.status(201).json({
 			status: "success",
 			code: 201,
-			message: "Berhasil menambahkan data",
+			message: ["Berhasil menambahkan data"],
 			data: newSparepart,
 		});
     } catch (error) {
@@ -123,7 +172,7 @@ const createSparepart = async (req, res) => {
         res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || "gagal menambahkan data",
+			message: error || ["Internal Server Error"],
 		});
     }
 }
@@ -148,17 +197,17 @@ const editSparepart = async (req, res) => {
     if(!sparepart) return res.status(404).json({
 		status: "error",
 		code: 404,
-		message: "Kode sparepart tidak ditemukan"
+		message: ["Kode sparepart tidak ditemukan"]
 	});
     // START TRANSACTION
     const transaction = await sequelize.transaction()
     try {
         const updt = await sparepart.update({
-            nama_sparepart: nama_sparepart.toString(),
-            merk: merk.toString(),
-            tipe: tipe.toString(),
-            satuan: satuan.toString(),
-            harga_beli: Number(harga_beli),
+            nama_sparepart: nama_sparepart ? nama_sparepart.toString() : sparepart.nama_sparepart,
+            merk: merk ? merk.toString() : sparepart.merk,
+            tipe: tipe ? tipe.toString() : sparepart.tipe,
+            satuan: satuan ? satuan.toString() : sparepart.satuan,
+            harga_beli: harga_beli ? Number(harga_beli) : sparepart.harga_beli,
         }, { transaction: transaction });
         updt.save()
         // CREATE LOG USER
@@ -175,6 +224,7 @@ const editSparepart = async (req, res) => {
         res.status(201).json({
 			status: "success",
 			code: 201,
+            message: ["Sparepart berhasil diupdate"],
 			data: updt,
 		});
     } catch (error) {
@@ -182,7 +232,7 @@ const editSparepart = async (req, res) => {
         res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || "Internal Server Error",
+			message: error || ["Internal Server Error"],
 		});
     }
 }
@@ -224,7 +274,7 @@ const deleteSparepart = async (req, res) => {
         res.status(201).json({
 			status: "success",
 			code: 201,
-			message: "Data berhasil dihapus",
+			message: ["Data berhasil dihapus"],
 			data: updt,
 		});
     } catch (error) {
@@ -232,13 +282,14 @@ const deleteSparepart = async (req, res) => {
         res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || "gagal menambahkan data",
+			message: error || ["gagal menghapus data"],
 		});
     }
 }
 
 module.exports = {
     getAll,
+    getSearch,
     getByKode,
     createSparepart,
     editSparepart,
