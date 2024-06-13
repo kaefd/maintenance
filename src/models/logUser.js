@@ -2,10 +2,14 @@ const { DataTypes } = require('sequelize')
 const sequelize = require('../../connect')
 
 const LogUser = sequelize.define('LogUser', {
+    id_log_user: {
+        type: DataTypes.NUMBER,
+        autoIncrement: true,
+        primaryKey: true
+    },
     tanggal: {
         type: DataTypes.DATE,
         autoIncrement: false,
-        primaryKey: true
     },
     kode_user: {
         type: DataTypes.STRING,

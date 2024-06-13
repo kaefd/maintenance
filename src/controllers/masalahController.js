@@ -1,242 +1,173 @@
-const { Op, where } = require("sequelize")
-const { validationResult } = require("express-validator")
+require("sequelize")
 const { formaterPK } = require("../utils/utils")
 const detailMasalah = require("./detailMasalahController")
-const logUser = require("./logUserController")
-const logMesin = require("./logMesinController")
 const Masalah = require("../models/masalahModel")
-const DetailMasalah = require("../models/masalahModel")
 const sequelize = require("../../connect")
 const Mesin = require("../models/mesinModel")
-const KategoriMasalah = require("../models/kategoriMasalahModel")
-const masalah = require("../modules/masalah_head")
+const utils = require('./utils')
+const LogMesin = require("../models/logMesinModel")
+const LogUser = require("../models/logUser")
 
+// BASE CONFIGURATION
+let config = {
+	model: Masalah,
+	PK: "no_masalah",
+	modelAssociation: [
+		{
+			toModel: Mesin,
+			relation: "hasMany",
+			model: Masalah,
+			fk: "kode_mesin"
+		},
+		{
+			toModel: Masalah,
+			relation: "belongsTo",
+			model: Mesin,
+			fk: "kode_mesin",
+		},
+	],
+	order: [["no_masalah", "DESC"]],
+	include: [
+		{ 
+			model: Mesin,
+			strModel: "Mesin",
+			attributes: ["nama_mesin"]
+		}
+	],
+}
+
+const wipeData = () => {
+	config = {
+		model: Masalah,
+		PK: "no_masalah",
+		modelAssociation: [
+			{
+				toModel: Mesin,
+				relation: "hasMany",
+				model: Masalah,
+				fk: "kode_mesin"
+			},
+			{
+				toModel: Masalah,
+				relation: "belongsTo",
+				model: Mesin,
+				fk: "kode_mesin",
+			},
+		],
+		order: [["no_masalah", "DESC"]],
+		include: [
+			{ 
+				model: Mesin,
+				strModel: "Mesin",
+				attributes: ["nama_mesin"]
+			}
+		],
+	}
+}
 // GET ALL
 const getAll = async (req, res) => {
-	// MODEL ASSOSIATION
-	Mesin.hasMany(Masalah, {foreignKey: 'kode_mesin'})
-	Masalah.belongsTo(Mesin, {foreignKey: 'kode_mesin'})
 
-	const { limit = 10, page = 1 } = req.query;
-	const offset = (page - 1) * limit;
-	try {
-		let whereCondition = Object.fromEntries(
-			Object.entries(req.query).filter(([key, value]) => key != "limit" && key != "page")
-		);
-		whereCondition.status = whereCondition.status ? whereCondition.status : ['open', 'close']
-		let masalah = await Masalah.findAll({
-			limit: parseInt(limit),
-			offset: parseInt(offset),
-			where: whereCondition,
-			order: [["no_masalah", "DESC"]],
-			include: [
-				{
-                	model: Mesin,
-                	required: true,
-                	attributes: ['nama_mesin']
-            	}
-			]
-		});
-		if (!masalah) {
-			return res.status(404).json({
-				status: "error",
-				code: 404,
-				message: ["data tidak ditemukan"]
-			});
-		}
-		// new object
-		const new_masalah = masalah.map(m => {
-			return {
-				no_masalah: m.no_masalah,
-				nama_kategori: m.nama_kategori,
-				tgl_masalah: m.tgl_masalah,
-				kode_mesin: m.kode_mesin,
-				nama_mesin: m.Mesin.nama_mesin,
-				penyebab: m.penyebab,
-				keterangan_masalah: m.keterangan_masalah,
-				penanganan: m.penanganan,
-				user_penanganan: m.user_penanganan,
-				tgl_penanganan: m.tgl_penanganan,
-				created_by: m.created_by,
-				created_date: m.created_date,
-				deleted_by: m.deleted_by,
-				deleted_date: m.deleted_date,
-				status: m.status,
-			}
-		})
-		const total = await Masalah.findAll({
-			where: whereCondition,
-		})
-		var re = page > 1 ? total.length - (page * limit - limit) -  new_masalah.length : total.length - new_masalah.length
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: parseInt(page),
-			limit: parseInt(limit),
-			rows: new_masalah.length,
-			totalData: total.length,
-			remainder: re >= 0 ? re : 0,
-			data: new_masalah,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"]
-		});
-	}
+	wipeData()
+
+	let whereCondition = Object.fromEntries(
+		Object.entries(req.query).filter(
+			([key]) => key != "limit" && key != "page"
+		)
+	);
+	whereCondition.status = whereCondition.status ?? ["open", "close"];
+	config.limit = req.query.limit
+	config.page = req.query.page
+	config.whereCondition = whereCondition
+	await utils.GetData(config, res)
+	
 }
+// SEARCH
 const getSearch = async (req, res) => {
-	const input = req.query.search
-	try {
-		let masalah = await Masalah.findAll({
-			where: {
-				status: "true",
-			},
-			order: [["no_masalah", "DESC"]],
-		})
-		if (!masalah) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		let nwmasalah = masalah.map(i => i.dataValues)
-		const search = input ? nwmasalah.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(input.toLowerCase()))) : masalah
-		console.log(search);
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: 1,
-			limit: parseInt(search.length),
-			rows: search.length,
-			totalData: search.length,
-			remainder: 0,
-			data: search,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
+
+	wipeData()
+	
+	let whereCondition = {
+		status: req.query.status ?? ["open", "close"]
 	}
+	config.whereCondition = whereCondition
+	config.input = req.query.search
+
+	await utils.GetData(config, res)
 }
-// GET
+// GET BY PK
 const getByKode = async (req, res) => {
-	// MODEL ASSOSIATION
-	Mesin.hasMany(Masalah, {foreignKey: 'kode_mesin'})
-	Masalah.belongsTo(Mesin, {foreignKey: 'kode_mesin'})
-	// PARAM
-	const no_masalah = req.params.no_masalah;
-	try {
-		const masalah = await Masalah.findOne({
-			where: {
-				no_masalah: no_masalah
-			},
-			include: [
-				{
-            	    model: Mesin,
-            	    required: true,
-            	    attributes: ['nama_mesin']
-            	},
-			]
-		});
-		if (!masalah) {
-			return res.status(404).json({
-				status: "error",
-				code: 404,
-				message: "data tidak ditemukan"
-			});
-		}
-		// new object
-		const new_masalah = {
-			no_masalah: masalah.no_masalah,
-			tgl_masalah: masalah.tgl_masalah,
-			nama_kategori: masalah.nama_kategori,
-			kode_mesin: masalah.kode_mesin,
-			nama_mesin: masalah.Mesin.nama_mesin,
-			penyebab: masalah.penyebab,
-			keterangan_masalah: masalah.keterangan_masalah,
-			penanganan: masalah.penanganan,
-			tgl_penanganan: masalah.tgl_penanganan,
-			created_by: masalah.created_by,
-			created_date: masalah.created_date,
-			deleted_by: masalah.deleted_by,
-			deleted_date: masalah.deleted_date,
-			status: masalah.status,
-		}
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			data: new_masalah,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error || ["Internal server error"],
-		});
+
+	wipeData()
+
+	let whereCondition = {
+		status: req.query.status ?? ["open", "close"]
 	}
+	config.whereCondition = whereCondition
+	config.byPK = req.params.no_masalah
+
+	await utils.GetData(config, res)
 }
 // CREATE MASALAH
 const createMasalah = async (req, res) => {
+
+	wipeData()
+
 	// GET PAYLOADS
 	const { kode_mesin, penyebab, nama_kategori, keterangan_masalah } = req.body;
-	// VALIDASI
-	let errors = validationResult(req).array().map(er => { return er.msg || er.message })
-	if (errors != "") return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: errors
-	});
-	const kodemesin = await Mesin.findByPk(kode_mesin)
-	if(!kodemesin) return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: ["Kode mesin tidak ditemukan"]
-	});
+	// VALIDATE
+	let check = [
+		{
+			model: Mesin,
+			whereCondition: {kode_mesin: kode_mesin},
+			title: "Kode Mesin",
+			check: "isAvailable",
+		},
+	];
+	let validate = await utils.Validate(req, res, check)
+	if(validate) return validate
+	
 	// START TRANSACTION
 	const transaction = await sequelize.transaction()
 	try {
-		// POST MASALAH
 		const no_masalah = await formaterPK("masalah")
-		const post_data = await Masalah.create({
+		config.time_user_stamp = true
+		config.log = [
+			{
+				model: LogMesin,
+				data: {
+					tanggal: new Date(),
+					kode_mesin: kode_mesin,
+					kategori: "bermasalah",
+					keterangan: no_masalah,
+					user_input: req.session.user
+				},
+			},
+			{
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Menambah data masalah",
+					keterangan: no_masalah,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		config.data = {
             no_masalah: no_masalah,
             nama_kategori: nama_kategori,
-            tgl_masalah: new Date().toISOString(),
-            kode_mesin: kodemesin.kode_mesin,
-            penyebab: penyebab.toString(),
-            keterangan_masalah: keterangan_masalah.toString(),
+            tgl_masalah: new Date(),
+            kode_mesin: kode_mesin,
+            penyebab: penyebab ?? "",
+            keterangan_masalah: keterangan_masalah ?? "",
 			tgl_penanganan: "",
 			penanganan: "",
-            created_by: req.session.user,
+			total_biaya: 0,
             user_penanganan: "",
-            created_date: new Date().toISOString(),
-            deleted_by: "",
-            deleted_date: new Date(1).toISOString(),
             status: "open"
-        },
-		{ transaction: transaction })
-		// CREATE LOG MESIN
-		const log_mesin = await logMesin.createLog(
-			kode_mesin,
-			"bermasalah",
-			no_masalah,
-			req.session.user,
-			transaction
-		)
-		if (log_mesin.error) throw log_mesin.error;
-        // CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Menambah data masalah",
-			no_masalah,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+        }
+		// POST DATA
+		const result = await utils.CreateData(req, config, transaction)
+		if(result.error) throw result.error
 		// COMMIT
 		await transaction.commit()
 		// RESPONSE
@@ -244,69 +175,79 @@ const createMasalah = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Berhasil menambahkan data"],
-			data: post_data,
+			data: result,
 		});
 	} catch (error) {
 		await transaction.rollback();
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 };
 // PENANGANAN MASALAH
 const createPenanganan = async (req, res) => {
+
+	wipeData()
+
     // CEK PAYLOADS
     const no_masalah = req.params.no_masalah;
 	const { penanganan, detail } = req.body;
     // VALIDASI
-	let errors = validationResult(req).array().map(er => { return er.msg || er.message })
-	if (errors != "") return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: errors
-	});
-    // GET DATA BY PK
-    const masalah = await Masalah.findByPk(no_masalah)
-	if(!masalah) return res.status(404).json({
-		status: "error",
-		code: 404,
-		message: ["No masalah tidak ditemukan"],
-	});
+	let check = [
+		{
+			model: Masalah,
+			whereCondition: {status: "open", no_masalah: no_masalah},
+			title: "No Masalah",
+			check: "isAvailable",
+		},
+	];
+	let validate = await utils.Validate(req, res, check)
+	if(validate) return validate
+	
 	// START TRANSACTION
 	const transaction = await sequelize.transaction()
 	try {
+		let total_b = 0
+		// POST DETAIL
+		if(detail) {
+			let dt = await detailMasalah.createDetailMasalah(no_masalah, detail, transaction)
+			if(dt.error) throw dt.error
+			total_b = dt.map(d => d.dataValues).map(d => d.biaya).reduce((partialSum, a) => partialSum + a, 0)
+		}
+		const masalah = await Masalah.findByPk(no_masalah)
 		// UPDATE
-		const updt = await masalah.update({
+		config.data = {
+			no_masalah: no_masalah,
 			penanganan: penanganan,
 			tgl_penanganan: new Date().toISOString(),
 			user_penanganan: req.session.user,
+			total_biaya: total_b,
 			status: "close"
-		},
-		{ transaction: transaction })
-		updt.save()
-		// POST DETAIL
-		let dt = await detailMasalah.createDetailMasalah(no_masalah, detail, transaction)
-		console.log(dt);
-		if(dt.error) throw dt.error
-		// CREATE LOG MESIN
-		const log_mesin = await logMesin.createLog(
-			masalah.kode_mesin,
-			"ditangani",
-			no_masalah,
-			req.session.user,
-			transaction
-		)
-		if (log_mesin.error) throw log_mesin.error;
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Menambahkan penanganan",
-			no_masalah,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error
+		}
+		config.log = [
+			{
+				model: LogMesin,
+				data: {
+					tanggal: new Date(),
+					kode_mesin: masalah.kode_mesin,
+					kategori: "ditangani",
+					keterangan: no_masalah,
+					user_input: req.session.user
+				},
+			},
+			{
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Menambahkan penanganan",
+					keterangan: no_masalah,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		const result = await utils.UpdateData(req, config, transaction)
 		// COMMIT
 		await transaction.commit()
 		// RESPONSE
@@ -314,57 +255,78 @@ const createPenanganan = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Berhasil menambahkan data"],
-			data: dt,
+			data: result,
 		});
 	} catch (error) {
 		await transaction.rollback()
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 }
 // BATAL PENANGANAN
 const deletePenanganan = async (req, res) => {
+
+	wipeData()
+
 	const no_masalah = req.params.no_masalah
+	// VALIDATE
+	let check = [
+		{
+			model: Masalah,
+			whereCondition: {no_masalah: no_masalah, penanganan: ""},
+			title: "No Masalah",
+			message: "Belum ada penanganan",
+			check: "isDuplicate",
+		},
+	];
+	let validate = await utils.Validate(req, res, check)
+	if(validate) return validate
 	// START TRANSACTION
 	const transaction = await sequelize.transaction()
 	try {
 		// GET MASALAH HEAD
 		const masalah = await Masalah.findByPk(no_masalah);
-		if (!masalah) return res.status(500).json({
-			status: "error",
-			code: 500,
-			message: ["No masalah tidak ditemukan"]
-		});
 		// UPDATE MASALAH HEAD
-		await masalah.update({
+		config.data = {
+			no_masalah: no_masalah,
 			penanganan: '',
+			user_penanganan: '',
 			tgl_penanganan: '',
+			total_biaya: 0,
 			status: "open"
-		},
-		{ transaction: transaction })
-		masalah.save()
-
+		}
+		config.log = [
+			{
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Membatalkan penanganan",
+					keterangan: no_masalah,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		const updateMslHead = await utils.UpdateData(req, config, transaction)
+		if(updateMslHead.error) throw updateMslHead.error
+		// DELETE DETAIL
 		const batal_detail = await detailMasalah.deleteDetailMasalah(no_masalah, req.session.user, transaction)
 		if(batal_detail.error) throw batal_detail.error
+
+		wipeData()
+
 		// DELETE LOG MESIN
-		const del = await logMesin.deleteLog(
-			masalah.kode_mesin,
-			"ditangani",
-			no_masalah,
-			transaction
-		)
-		if (del.error) throw del.error;
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Membatalkan penanganan",
-			no_masalah,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+		config.model = LogMesin
+		config.PK = "kode_mesin"
+		config.data = {
+			kode_mesin: masalah.kode_mesin,
+			kategori: "ditangani",
+			keterangan: no_masalah
+		}
+		let deleteLog = await utils.DeleteData(req, config, transaction)
+		if(deleteLog.error) throw deleteLog.error
 		// COMMIT
 		await transaction.commit()
 		// RESPONSE
@@ -379,61 +341,71 @@ const deletePenanganan = async (req, res) => {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 }
 // BATAL MASALAH
 const deleteMasalah = async (req, res) => {
+
+	wipeData()
+	
 	const no_masalah = req.params.no_masalah;
 	// START TRANSACTION
 	const transaction = await sequelize.transaction()
 	try {
-		// CEK DATA BY PK
-		let masalah = await Masalah.findByPk(no_masalah);
-
-		if (!masalah) return res.status(500).json({
-			status: "error",
-			code: 500,
-			message: ["No masalah tidak ditemukan"]
-		});
-		// batal detail
-		const batal_detail = await detailMasalah.deleteDetailMasalah(no_masalah, req.session.user, transaction)
-		if(batal_detail.error) throw batal_detail.error
-		// UPDATE VALUE
-		masalah.update({
+		const masalah = await Masalah.findByPk(no_masalah);
+		// UPDATE MASALAH HEAD
+		config.data = {
+			no_masalah: no_masalah,
 			deleted_date: new Date().toISOString(),
 			deleted_by: req.session.user,
 			status: "false",
-		}, { transaction: transaction })
-		masalah.save();
-		// DELETE LOG MESIN PENAGANAN
-		const del_penanganan = await logMesin.deleteLog(
-			masalah.kode_mesin,
-			"ditangani",
-			no_masalah,
-			transaction
-		)
-		if (del_penanganan.error) throw del_penanganan.error;
+		}
+		config.log = [
+			{
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Membatalkan masalah",
+					keterangan: no_masalah,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		const updateMslHead = await utils.UpdateData(req, config, transaction)
+		if(updateMslHead.error) throw updateMslHead.error
+		// BATAL DETAIL
+		const batal_detail = await detailMasalah.deleteDetailMasalah(no_masalah, req.session.user, transaction)
+		if(batal_detail.error) throw batal_detail.error
+
+		wipeData()
+
+		// DELETE LOG MESIN PENANGANAN
+		config.model = LogMesin
+		config.PK = "kode_mesin"
+		config.data = {
+			kode_mesin: masalah.kode_mesin,
+			kategori: "ditangani",
+			keterangan: no_masalah
+		}
+		let delLogMesinPenanganan = await utils.DeleteData(req, config, transaction)
+		if(delLogMesinPenanganan.error) throw delLogMesinPenanganan.error
+
+		wipeData()
+		
 		// DELETE LOG MESIN MASALAH
-		const del = await logMesin.deleteLog(
-			masalah.kode_mesin,
-			"bermasalah",
-			no_masalah,
-			transaction
-		)
-		if (del.error) throw del.error;
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Membatalkan masalah",
-			no_masalah,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+		config.model = LogMesin
+		config.PK = "kode_mesin"
+		config.data = {
+			kode_mesin: masalah.kode_mesin,
+			kategori: "bermasalah",
+			keterangan: no_masalah
+		}
+		let delLogMesinMasalah = await utils.DeleteData(req, config, transaction)
+		if(delLogMesinMasalah.error) throw delLogMesinMasalah.error
 		// COMMIT
 		await transaction.commit()
-		// result
 		// RESPONSE
 		res.status(201).json({
 			status: "success",
@@ -445,7 +417,7 @@ const deleteMasalah = async (req, res) => {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 };

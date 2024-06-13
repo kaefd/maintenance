@@ -1,165 +1,122 @@
-const { validationResult } = require("express-validator");
 const Mesin = require("../models/mesinModel");
-const logUser = require("./logUserController");
-const logMesin = require("./logMesinController");
-const masalah = require("./masalahController");
 const sequelize = require("../../connect");
-const Masalah = require("../models/masalahModel");
+const utils = require("./utils");
+const LogUser = require("../models/logUser");
+const LogMesin = require("../models/logMesinModel");
+
+// BASE CONFIGURATION
+let config = {
+	model: Mesin,
+	PK: "kode_mesin",
+	whereCondition: { status: "true" }
+};
+
+const wipeData = () => {
+	config = {
+		model: Mesin,
+		PK: "kode_mesin",
+		whereCondition: { status: "true" }
+	}
+}
 
 // GET ALL
 const getAll = async (req, res) => {
-	const { limit = 10, page = 1 } = req.query;
-	const offset = (page - 1) * limit;
-	try {
-		const mesin = await Mesin.findAll({
-			limit: parseInt(limit),
-			offset: parseInt(offset),
-			where: {
-				status: "true",
-			},
-			order: [["kode_mesin", "DESC"]],
-		})
-		const total = await Mesin.findAll({
-			where: {
-				status: "true",
-			},
-		})
-		if (!mesin) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		var re = page > 1 ? total.length - (page * limit - limit) -  mesin.length : total.length - mesin.length
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: parseInt(page),
-			limit: parseInt(limit),
-			rows: mesin.length,
-			totalData: total.length,
-			remainder: re || 0,
-			data: mesin,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
-	}
+
+	wipeData()
+
+	let whereCondition = Object.fromEntries(
+		Object.entries(req.query).filter(
+			([key]) => key != "limit" && key != "page"
+		)
+	);
+	whereCondition = config.whereCondition
+	config.limit = req.query.limit
+	config.page = req.query.page
+	config.whereCondition = whereCondition
+
+	await utils.GetData(config, res)
 };
 const getSearch = async (req, res) => {
-	const input = req.query.search
-	try {
-		let mesin = await Mesin.findAll({
-			where: {
-				status: "true",
-			},
-			order: [["kode_mesin", "DESC"]],
-		})
-		if (!mesin) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		let nwMesin = mesin.map(i => i.dataValues)
-		const search = input ? nwMesin.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(input.toLowerCase()))) : mesin
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: 1,
-			limit: parseInt(search.length),
-			rows: search.length,
-			totalData: search.length,
-			remainder: 0,
-			data: search,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
-	}
+
+	wipeData()
+
+	config.input = req.query.search
+	await utils.GetData(config, res)
+
 }
 // GET BY KODE
 const getByKode = async (req, res) => {
-	const kode_mesin = req.params.kode_mesin;
-	try {
-		const mesin = await Mesin.findByPk(kode_mesin);
-		if (!mesin) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			data: mesin,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error || ["Internal server error"],
-		});
-	}
+
+	wipeData()
+
+	config.byPK = req.params.kode_mesin
+	await utils.GetData(config, res)
+
 };
 // CREATE MESIN
 const createMesin = async (req, res) => {
+
+	wipeData()
+
 	// PAYLOAD
 	const { kode_mesin, nama_mesin, keterangan, tgl_beli, supplier } = req.body;
 	// VALIDASI
-	let errors = validationResult(req).array().map(er => { return er.msg || er.message })
-	if (errors != "") return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: errors
-	});
-	const existKode = await Mesin.findOne({ where: { kode_mesin: kode_mesin } });
-	if (existKode) return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: ["Kode mesin sudah terdaftar"]
-	});
+	let validate = await utils.Validate(req, res, [])
+	if(validate) return validate
+
+	let check = [
+		{
+			model: Mesin,
+			whereCondition: { 
+				kode_mesin: kode_mesin,
+			},
+			title: "Kode Mesin",
+			check: "isDuplicate",
+		},
+	];
+	validate = await utils.Validate(req, res, check)
+	if(validate) return validate
+
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	// CREATE DATA
 	try {
-		const newMesin = await Mesin.create(
+		config.data = {
+			kode_mesin: kode_mesin.toString(),
+			nama_mesin: nama_mesin.toString(),
+			keterangan: keterangan ?? "",
+			tgl_beli: tgl_beli ?? "",
+			supplier: supplier ?? "",
+			created_by: req.session.user,
+			created_date: new Date().toISOString(),
+			deleted_by: "",
+			deleted_date: new Date(1).toISOString(),
+			status: "true",
+		}
+		config.log = [
 			{
-				kode_mesin: kode_mesin.toString(),
-				nama_mesin: nama_mesin.toString(),
-				keterangan: keterangan ? keterangan.toString() : "",
-				tgl_beli: tgl_beli,
-				supplier: supplier.toString(),
-				created_by: req.session.user,
-				created_date: new Date().toISOString(),
-				deleted_by: "",
-				deleted_date: new Date(1).toISOString(),
-				status: "true",
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Menambahkan data mesin",
+					keterangan: kode_mesin,
+					kode_user: req.session.user,
+				}
 			},
-			{ transaction: transaction }
-		);
-		// CREATE LOG MESIN
-		const log_mesin = await logMesin.createLog(
-			kode_mesin,
-			"masuk",
-			kode_mesin,
-			req.session.user,
-			transaction
-		)
-		if (log_mesin.error) throw log_mesin.error;
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Menambah data mesin",
-			kode_mesin,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+			{
+				model: LogMesin,
+				data: {
+					tanggal: new Date(),
+					kode_mesin: kode_mesin,
+					kategori: "masuk",
+					keterangan: kode_mesin,
+					user_input: req.session.user
+				},
+			},
+		]
+		// POST DATA
+		const result = await utils.CreateData(req, config, transaction)
+		if(result.error) throw result.error
 		// COMMIT
 		await transaction.commit();
 		// RESPONSE
@@ -167,61 +124,59 @@ const createMesin = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Berhasil menambahkan data"],
-			data: newMesin,
+			data: result,
 		});
 	} catch (error) {
 		await transaction.rollback();
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 };
 // EDIT
 const editMesin = async (req, res) => {
+
+	wipeData()
+
 	const kode = req.params.kode;
 	const { nama_mesin, keterangan, tgl_beli, supplier } = req.body;
 	// VALIDASI
-	const errors = validationResult(req).array().map(er => { return er.msg || er.message });
-	if (errors != "") return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: errors
-	});
-	const mesin = await Mesin.findOne({
-		where: {
-			kode_mesin: kode,
-			status: "true",
+    let check = [
+		{
+			model: Mesin,
+			whereCondition: {kode_mesin: kode, status: "true"},
+			title: "Role",
+			check: "isAvailable",
 		},
-	});
-	if (!mesin) return res.status(404).json({
-		status: "error",
-		code: 404,
-		message: ["Kode mesin tidak ditemukan"]
-	});
+	];
+    let validate = await utils.Validate(req, res, check)
+	if(validate) return validate
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	try {
-		const updt = await mesin.update(
+		const mesin = await Mesin.findOne({ where: { kode_mesin: kode, status: "true" }})
+		config.data = {
+			kode_mesin: kode,
+			nama_mesin: nama_mesin ?? mesin.nama_mesin,
+			keterangan: keterangan ?? mesin.keterangan,
+			tgl_beli: tgl_beli ?? mesin.tgl_beli,
+			supplier: supplier ?? mesin.supplier,
+		}
+		config.log = [
 			{
-				nama_mesin: nama_mesin ? nama_mesin.toString() : mesin.nama_mesin,
-				keterangan: keterangan ? keterangan.toString() : mesin.keterangan,
-				tgl_beli: tgl_beli ? tgl_beli : mesin.tgl_beli,
-				supplier: supplier ? supplier.toString() : mesin.supplier,
-				status: "true",
-			},
-			{ transaction: transaction }
-		);
-		updt.save();
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Mengubah data mesin",
-			updt.kode_mesin,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Mengubah data mesin",
+					keterangan: kode,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		console.log(config);
+		await utils.UpdateData(req, config, transaction)
 		// COMMIT
 		await transaction.commit();
 		// RESULT
@@ -229,78 +184,59 @@ const editMesin = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Mesin berhasil diupdate"],
-			data: updt,
 		});
 	} catch (error) {
 		await transaction.rollback();
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 };
 // DELETE
 const deleteMesin = async (req, res) => {
+
+	wipeData()
+
 	const kode = req.params.kode;
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	try {
-		const mesin = await Mesin.findByPk(kode);
-		if (!mesin)
-			return res.status(404).json({
-				status: "error",
-				code: 404,
-				message: ["Kode mesin tidak ditemukan"]
-			});
-		// UPDATE DATA
-		const updt = await mesin.update(
+		config.data = {
+			kode_mesin: kode,
+			deleted_by: req.session.user,
+            deleted_date: new Date().toISOString(),
+            status: "false"
+		}
+		config.log = [
 			{
-				deleted_by: req.session.user,
-				deleted_date: new Date().toISOString(),
-				status: "false",
-			},
-			{ transaction: transaction }
-		);
-		const msl = await Masalah.findAll({
-			where: {
-				kode_mesin: kode,
-				status: "open"
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Menghapus data mesin",
+					keterangan: kode,
+					kode_user: req.session.user,
+				}
 			}
-		})
-		if(msl.length > 0) throw [`${kode} sedang dalam perbaikan, data mesin tidak dapat dapat dihapus`]
-		mesin.save;
-		// LOG MESIN
-		const log_mesin = await logMesin.createLog(
-			kode,
-			"keluar",
-			kode,
-			req.session.user,
-			transaction
-		)
-		if (log_mesin.error) throw log_mesin.error;
-		// CREATE LOG
-		const log_user = await logUser.createLog(
-			"Menghapus data mesin",
-			updt.kode_mesin,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+		]
+		let deleteLog = await utils.UpdateData(req, config, transaction)
+		if(deleteLog.error) throw deleteLog.error
 		// COMMIT
-		await transaction.commit();
-		// RESPONSE
-		res.status(201).json({
+        await transaction.commit()
+		// RESULT
+        res.status(201).json({
 			status: "success",
 			code: 201,
-			message: ["Data berhasil dihapus"],
+			message: ["Berhasil menghapus data"],
 		});
+
 	} catch (error) {
 		await transaction.rollback();
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["gagal menghapus data"],
+			message: error ?? ["gagal menghapus data"],
 		});
 	}
 };

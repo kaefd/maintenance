@@ -42,6 +42,11 @@ const Masalah = sequelize.define('Masalah', {
         autoIncrement: false,
         allowNull: true
     },
+    total_biaya: {
+        type: DataTypes.DOUBLE,
+        autoIncrement: false,
+        allowNull: true
+    },
     created_by: {
         type: DataTypes.STRING,
         autoIncrement: false,

@@ -2,7 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const app = express();
 const sequelize = require('./connect');
-const routes = require('./src/routes/routes');
+const routes = require('./src/routes/index');
 const config = require('./src/middleware/config');
 
 sequelize.sync({ force: false })

@@ -2,131 +2,98 @@ const { validationResult } = require("express-validator");
 const KategoriMasalah = require("../models/kategoriMasalahModel");
 const logUser = require("./logUserController");
 const sequelize = require("../../connect");
+const utils = require("./utils")
+const LogUser = require("../models/logUser");
+
+// BASE CONFIGURATION
+let config = {
+	model: KategoriMasalah,
+	PK: "id_kategori",
+};
+
+const wipeData = () => {
+	config = {
+		model: KategoriMasalah,
+		PK: "id_kategori",
+	}
+}
 
 // GET ALL
 const getAll = async (req, res) => {
-	const { limit = 10, page = 1 } = req.query;
-	const offset = (page - 1) * limit;
-	try {
-		const kategori = await KategoriMasalah.findAll({
-			limit: parseInt(limit),
-			offset: parseInt(offset),
-		})
-		const total = await KategoriMasalah.findAll()
-		if (!kategori) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		var re = page > 1 ? total.length - (page * limit - limit) -  kategori.length : total.length - kategori.length
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: parseInt(page),
-			limit: parseInt(limit),
-			rows: kategori.length,
-			totalData: total.length,
-			remainder: re || 0,
-			data: kategori,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
-	}
+
+	wipeData()
+
+	let whereCondition = Object.fromEntries(
+		Object.entries(req.query).filter(
+			([key, value]) => key != "limit" && key != "page"
+		)
+	);
+	config.limit = req.query.limit
+	config.page = req.query.page
+	config.whereCondition = whereCondition
+
+	await utils.GetData(config, res)
+
 };
 const getSearch = async (req, res) => {
-	const input = req.query.search
-	try {
-		let kategori = await KategoriMasalah.findAll()
-		if (!kategori) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		let nwkategori = kategori.map(i => i.dataValues)
-		const search = input ? nwkategori.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(input.toLowerCase()))) : kategori
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: 1,
-			limit: parseInt(search.length),
-			rows: search.length,
-			totalData: search.length,
-			remainder: 0,
-			data: search,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
-	}
+
+	wipeData()
+
+	config.input = req.query.search
+	await utils.GetData(config, res)
 }
 // GET BY KODE
 const getByKode = async (req, res) => {
-	const id = req.params.id;
-	try {
-		const kategori = await KategoriMasalah.findByPk(id);
-		if (!kategori) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			data: kategori,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error || ["Internal server error"],
-		});
-	}
+
+	wipeData()
+
+	config.byPK = req.params.kode
+	await utils.GetData(config, res)
 };
 // CREATE KATEGORI
 const createKategori = async (req, res) => {
+
+	wipeData()
+
 	// PAYLOAD
 	const { nama_kategori } = req.body;
 	// VALIDASI
-	let errors = validationResult(req).array().map(er => { return er.msg || er.message })
-	if (errors != "") return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: errors
-	});
-	const existKode = await KategoriMasalah.findOne({ where: { nama_kategori: nama_kategori } });
-	if (existKode) return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: ["Kategori masalah sudah terdaftar"]
-	});
+	let validate = await utils.Validate(req, res, [])
+	if(validate) return validate
+
+	let check = [
+		{
+			model: KategoriMasalah,
+			whereCondition: { 
+				nama_kategori: nama_kategori,
+			},
+			title: "Nama Kategori",
+			check: "isDuplicate",
+		},
+	];
+	validate = await utils.Validate(req, res, check)
+	if(validate) return validate
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	// CREATE DATA
 	try {
-		const newKategori = await KategoriMasalah.create(
+		config.data = {
+			nama_kategori: nama_kategori
+		}
+		config.log = [
 			{
-				nama_kategori: nama_kategori.toString(),
-			},
-			{ transaction: transaction }
-		);
-		
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Menambah data kategori masalah",
-			nama_kategori,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Menambahkan kategori masalah",
+					keterangan: nama_kategori,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		// POST DATA
+		const result = await utils.CreateData(req, config, transaction)
+		if(result.error) throw result.error
 		// COMMIT
 		await transaction.commit();
 		// RESPONSE
@@ -134,54 +101,55 @@ const createKategori = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Berhasil menambahkan data"],
-			data: newKategori,
+			data: result,
 		});
 	} catch (error) {
 		await transaction.rollback();
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 };
 // EDIT
 const editKategori = async (req, res) => {
+
+	wipeData()
+
 	const kode = req.params.kode;
 	const { nama_kategori } = req.body;
 	// VALIDASI
-	const errors = validationResult(req).array().map(er => { return er.msg || er.message });
-	if (errors != "") return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: errors
-	});
-	const kategori = await KategoriMasalah.findOne({
-		where: {nama_kategori: kode}
-	});
-	if (!kategori) return res.status(404).json({
-		status: "error",
-		code: 404,
-		message: ["kategori masalah tidak ditemukan"]
-	});
+    let check = [
+		{
+			model: KategoriMasalah,
+			whereCondition: {id_kategori: kode},
+			title: "Kategori Masalah",
+			check: "isAvailable",
+		},
+	];
+    let validate = await utils.Validate(req, res, check)
+	if(validate) return validate
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	try {
-		const updt = await kategori.update(
+		const kategori = await KategoriMasalah.findByPk(kode)
+		config.data = {
+			id_kategori: kode,
+			nama_kategori: nama_kategori ?? kategori.nama_kategori
+		}
+		config.log = [
 			{
-				nama_kategori: nama_kategori ? nama_kategori.toString() : kategori.nama_kategori,
-			},
-			{ transaction: transaction }
-		);
-		updt.save();
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Mengubah data kategori",
-			updt.nama_kategori,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Mengubah kategori masalah",
+					keterangan: nama_kategori,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		await utils.UpdateData(req, config, transaction)
 		// COMMIT
 		await transaction.commit();
 		// RESULT
@@ -189,48 +157,39 @@ const editKategori = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Kategori masalah berhasil diupdate"],
-			data: updt,
 		});
 	} catch (error) {
 		await transaction.rollback();
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 };
 // DELETE
 const deleteKategori = async (req, res) => {
+
+	wipeData()
+
 	const kode = req.params.kode;
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	try {
-		const kategori = await KategoriMasalah.findOne({
-			where: {nama_kategori: kode}
-		});
-		if (!kategori)
-			return res.status(404).json({
-				status: "error",
-				code: 404,
-				message: ["kategori tidak ditemukan"]
-			});
-		// CREATE LOG
-		const log_user = await logUser.createLog(
-			"Menghapus data kategori masalah",
-			kategori.nama_kategori,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
-		// DELETE
-		await kategori.destroy({
-			where: {
-				nama_kategori: kode
+		config.data = { id_kategori: kode }
+		config.log = [
+			{
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Menghapus kategori masalah",
+					keterangan: kode,
+					kode_user: req.session.user,
+				}
 			}
-		},
-		{ transaction: transaction }
-		);
+		]
+		let deleteLog = await utils.DeleteData(req, config, transaction)
+		if(deleteLog.error) throw deleteLog.error
 		// COMMIT
 		await transaction.commit();
 		// RESPONSE
@@ -244,7 +203,7 @@ const deleteKategori = async (req, res) => {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["gagal menghapus data"],
+			message: error ?? ["gagal menghapus data"],
 		});
 	}
 };

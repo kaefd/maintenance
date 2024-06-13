@@ -22,6 +22,11 @@ const DetailMasalah = sequelize.define('DetailMasalah', {
         autoIncrement: false,
         allowNull: true,
     },
+    biaya: {
+        type: DataTypes.DOUBLE,
+        autoIncrement: false,
+        allowNull: true,
+    },
     keterangan: {
         type: DataTypes.TEXT,
         autoIncrement: false,

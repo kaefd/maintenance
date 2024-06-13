@@ -32,6 +32,16 @@ const Sparepart = sequelize.define('Sparepart', {
         autoIncrement: false,
         allowNull: false
     },
+    stok_minus: {
+        type: DataTypes.NUMBER,
+        autoIncrement: false,
+        allowNull: true
+    },
+    stok_akhir: {
+        type: DataTypes.NUMBER,
+        autoIncrement: false,
+        allowNull: true
+    },
     created_by: {
         type: DataTypes.STRING,
         autoIncrement: false,

@@ -2,131 +2,97 @@ const { validationResult } = require("express-validator");
 const logUser = require("./logUserController");
 const sequelize = require("../../connect");
 const RoleModel = require("../models/RoleModel");
+const utils = require("./utils");
+const LogUser = require("../models/logUser");
+
+// BASE CONFIGURATION
+let config = {
+	model: RoleModel,
+	PK: "id_role",
+};
+const wipeData = () => {
+	config = {
+		model: RoleModel,
+		PK: "id_role",
+	};
+}
 
 // GET ALL
 const getAll = async (req, res) => {
-	const { limit = 10, page = 1 } = req.query;
-	const offset = (page - 1) * limit;
-	try {
-		const role = await RoleModel.findAll({
-			limit: parseInt(limit),
-			offset: parseInt(offset),
-		})
-		const total = await RoleModel.findAll()
-		if (!role) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		var re = page > 1 ? total.length - (page * limit - limit) -  role.length : total.length - role.length
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: parseInt(page),
-			limit: parseInt(limit),
-			rows: role.length,
-			totalData: total.length,
-			remainder: re || 0,
-			data: role,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
-	}
+	
+	wipeData()
+
+	let whereCondition = Object.fromEntries(
+		Object.entries(req.query).filter(
+			([key, value]) => key != "limit" && key != "page"
+		)
+	);
+	config.limit = req.query.limit
+	config.page = req.query.page
+	config.whereCondition = whereCondition
+	await utils.GetData(config, res)
+
 };
 const getSearch = async (req, res) => {
-	const input = req.query.search
-	try {
-		let role = await RoleModel.findAll()
-		if (!role) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		let nwrole = role.map(i => i.dataValues)
-		const search = input ? nwrole.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(input.toLowerCase()))) : role
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: 1,
-			limit: parseInt(search.length),
-			rows: search.length,
-			totalData: search.length,
-			remainder: 0,
-			data: search,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
-	}
+
+	wipeData()
+
+	config.input = req.query.search
+	await utils.GetData(config, res)
+	
 }
 // GET BY KODE
 const getByKode = async (req, res) => {
-	const id = req.params.id;
-	try {
-		const role = await RoleModel.findByPk(id);
-		if (!role) return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: ["data tidak ditemukan"]
-		});
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			data: role,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error || ["Internal server error"],
-		});
-	}
+
+	wipeData()
+
+	config.byPK = req.params.id
+	await utils.GetData(config, res)
+
 };
-// CREATE MESIN
+// CREATE
 const createRole = async (req, res) => {
+
+	wipeData()
+
 	// PAYLOAD
 	const { nama_role } = req.body;
 	// VALIDASI
-	let errors = validationResult(req).array().map(er => { return er.msg || er.message })
-	if (errors != "") return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: errors
-	});
-	const existKode = await RoleModel.findOne({ where: { nama_role: nama_role } });
-	if (existKode) return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: ["Role sudah terdaftar"]
-	});
+	let check = []
+	if(nama_role) {
+		check = [
+			{
+				model: RoleModel,
+				whereCondition: {nama_role: nama_role},
+				title: "Role",
+				check: "isDuplicate",
+			},
+		];
+	}
+	let validate = await utils.Validate(req, res, check)
+	if(validate) return validate
+
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	// CREATE DATA
 	try {
-		const newRole = await RoleModel.create(
+		config.data = {
+			nama_role: nama_role.toString()
+		}
+		config.log = [
 			{
-				nama_role: nama_role.toString(),
-			},
-			{ transaction: transaction }
-		);
-		
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Menambah data role",
-			nama_role,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Menambah data role",
+					keterangan: nama_role,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		// POST DATA
+		const result = await utils.CreateData(req, config, transaction)
+		if(result.error) throw result.error
 		// COMMIT
 		await transaction.commit();
 		// RESPONSE
@@ -134,7 +100,7 @@ const createRole = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Berhasil menambahkan data"],
-			data: newRole,
+			data: result,
 		});
 	} catch (error) {
 		await transaction.rollback();
@@ -147,43 +113,47 @@ const createRole = async (req, res) => {
 };
 // EDIT
 const editRole = async (req, res) => {
+
+	wipeData()
+
 	const id = req.params.id;
 	const { nama_role } = req.body;
 	// VALIDASI
-	const errors = validationResult(req).array().map(er => { return er.msg || er.message });
-	if (errors != "") return res.status(400).json({
-		status: "error",
-		code: 400,
-		message: errors
-	});
-	const role = await RoleModel.findOne({
-		where: {
-			id_role: id,
+	let check = [
+		{
+			model: RoleModel,
+			whereCondition: {id_role: id},
+			title: "Role",
+			check: "isAvailable",
 		},
-	});
-	if (!role) return res.status(404).json({
-		status: "error",
-		code: 404,
-		message: ["Data tidak ditemukan"]
-	});
+	];
+    let validate = await utils.Validate(req, res, check)
+	if(validate) return validate
+
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	try {
-		const updt = await role.update(
-			{
-				nama_role: nama_role ? nama_role.toString() : role.nama_role,
+		const role = await RoleModel.findOne({
+			where: {
+				id_role: id,
 			},
-			{ transaction: transaction }
-		);
-		updt.save();
-		// CREATE LOG USER
-		const log_user = await logUser.createLog(
-			"Mengubah data role",
-			updt.nama_role,
-			req.session.user,
-			transaction
-		);
-		if (log_user.error) throw log_user.error;
+		});
+		config.data = {
+			id_role: id,
+			nama_role: nama_role ? nama_role.toString() : role.nama_role,
+		}
+		config.log = [
+			{
+				model: LogUser,
+				data: {
+					tanggal: new Date(),
+					kategori: "Mengubah data role",
+					keterangan: nama_role ?? role.nama_role,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		const result = await utils.UpdateData(req, config, transaction)
 		// COMMIT
 		await transaction.commit();
 		// RESULT
@@ -191,40 +161,43 @@ const editRole = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Role berhasil diupdate"],
-			data: updt,
 		});
 	} catch (error) {
 		await transaction.rollback();
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["Internal Server Error"],
+			message: error ?? ["Internal Server Error"],
 		});
 	}
 };
 // DELETE
 const deleteRole = async (req, res) => {
+
+	wipeData()
+
 	const id = req.params.id;
 	// START TRANSACTION
 	const transaction = await sequelize.transaction();
 	try {
-		const role = await RoleModel.findByPk(id);
-		if (!role)
-			return res.status(404).json({
-				status: "error",
-				code: 404,
-				message: ["Role tidak ditemukan"]
-			});
-		// UPDATE DATA
-		// CREATE LOG
-		const log_user = await logUser.createLog(
-			"Menghapus data role",
-			role.nama_role,
-			req.session.user,
-			transaction
-		);
-		await role.destroy(id)
-		if (log_user.error) throw log_user.error;
+		const role = await RoleModel.findByPk(id)
+		const nama_role = role.nama_role
+
+		config.data = {id_role: id}
+		config.log = [
+			{
+				model: LogUser,
+				data:  {
+					tanggal: new Date(),
+					kategori: "Menghapus Data Role",
+					keterangan: nama_role,
+					kode_user: req.session.user,
+				}
+			}
+		]
+		let deleteLog = await utils.DeleteData(req, config, transaction)
+		if(deleteLog.error) throw deleteLog.error
+		
 		// COMMIT
 		await transaction.commit();
 		// RESPONSE
@@ -238,7 +211,7 @@ const deleteRole = async (req, res) => {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error || ["gagal menghapus data"],
+			message: error ?? ["gagal menghapus data"],
 		});
 	}
 };

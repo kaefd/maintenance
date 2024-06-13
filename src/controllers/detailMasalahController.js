@@ -1,152 +1,116 @@
 const { Op } = require("sequelize");
-const { validationResult } = require("express-validator");
-const utils = require("../utils/utils")
+const utils = require("./utils")
 const DetailMasalah = require("../models/detailMasalahModel");
 const LogSparepart = require("../models/logSparepartModel");
-const LogUser = require("../models/logUser");
-const logSparepart = require("../controllers/logSparepartController");
-const stokSparepart = require("../controllers/stokSparepart");
-const sequelize = require("../../connect");
 const Sparepart = require("../models/sparepartModel");
 const LogSparepartModel = require("../models/logSparepartModel");
 
+// BASE CONFIGURATION
+let config = {
+	model: DetailMasalah,
+	PK: "no_masalah",
+	modelAssociation: [
+		{
+			toModel: Sparepart,
+			relation: "hasMany",
+			model: DetailMasalah,
+			fk: "kode_sparepart"
+		},
+		{
+			toModel: DetailMasalah,
+			relation: "belongsTo",
+			model: Sparepart,
+			fk: "kode_sparepart",
+		},
+	],
+	order: [["no_masalah", "DESC"]],
+	include: [
+		{ 
+			model: Sparepart,
+			strModel: "Sparepart",
+            attributes: ['nama_sparepart']
+		}
+	],
+}
+const wipeData = async () => {
+	config = {
+		model: DetailMasalah,
+		PK: "no_masalah",
+		modelAssociation: [
+			{
+				toModel: Sparepart,
+				relation: "hasMany",
+				model: DetailMasalah,
+				fk: "kode_sparepart"
+			},
+			{
+				toModel: DetailMasalah,
+				relation: "belongsTo",
+				model: Sparepart,
+				fk: "kode_sparepart",
+			},
+		],
+		order: [["no_masalah", "DESC"]],
+		include: [
+			{ 
+				model: Sparepart,
+				strModel: "Sparepart",
+				attributes: ['nama_sparepart']
+			}
+		],
+	}
+}
 // GET ALL
 const getAll = async (req, res) => {
-	// MODEL ASSOSIATION
-	Sparepart.hasMany(DetailMasalah, {foreignKey: 'kode_sparepart'})
-	DetailMasalah.belongsTo(Sparepart, {foreignKey: 'kode_sparepart'})
-	const { limit = 10, page = 1 } = req.query;
-	const offset = (page - 1) * limit;
-	try {
-		let whereCondition = {};
-		if (req.query.no_masalah) {
-			whereCondition.no_masalah = req.query.no_masalah
-		}
-		if (req.query.kode_sparepart) {
-			whereCondition.kode_sparepart = req.query.kode_sparepart
-		}
-		let d_masalah = await DetailMasalah.findAll({
-			limit: parseInt(limit),
-			offset: parseInt(offset),
-			where: whereCondition,
-			include: [{
-                model: Sparepart,
-                required: true,
-                attributes: ['nama_sparepart']
-            }]
-		});
-		if (d_masalah == '') return res.status(404).json({
-			status: "error",
-			code: 404,
-			message: "data tidak ditemukan"
-		});
-		// new obj
-		const new_detail = d_masalah.map(d => { return {
-			no_masalah: d.no_masalah,
-			no_urut: d.no_urut,
-			kode_sparepart: d.kode_sparepart,
-			nama_sparepart: d.Sparepart.nama_sparepart,
-			jumlah: d.jumlah,
-			keterangan: d.keterangan
-		}})
-		const total = await DetailMasalah.findAll({
-			where: whereCondition,
-		})
-		var re = page > 1 ? total.length - (page * limit - limit) -  new_detail.length : total.length - new_detail.length
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: parseInt(page),
-			limit: parseInt(limit),
-			rows: new_detail.length,
-			totalData: total.length,
-			remainder: re || 0,
-			data: new_detail,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
-	}
+	wipeData()
+
+	let whereCondition = Object.fromEntries(
+		Object.entries(req.query).filter(
+			([key]) => key != "limit" && key != "page"
+		)
+	);
+	config.limit = req.query.limit
+	config.page = req.query.page
+	config.whereCondition = whereCondition
+	await utils.GetData(config, res)
 };
 // GET
 const getByKode = async (req, res) => {
-	// MODEL ASSOSIATION
-	Sparepart.hasMany(DetailMasalah, {foreignKey: 'kode_sparepart'})
-	DetailMasalah.belongsTo(Sparepart, {foreignKey: 'kode_sparepart'})
-	// PARAM
-	const no_masalah = req.params.no_masalah;
-	try {
-		let d_masalah = await DetailMasalah.findAll({
-			where: {
-				no_masalah: no_masalah
-			},
-			include: [{
-                model: Sparepart,
-                required: true,
-                attributes: ['nama_sparepart']
-            }]
-		});
-		if (!d_masalah) {
-			return res.status(404).json({
-				status: "error",
-				code: 404,
-				message: "data tidak ditemukan"
-			});
-		}
-		// new obj
-		const new_detail = d_masalah.map(item => {
-			return {
-				no_masalah: item.no_masalah,
-				no_urut: item.no_urut,
-				kode_sparepart: item.kode_sparepart,
-				nama_sparepart: item.Sparepart.nama_sparepart,
-				jumlah: item.jumlah,
-				keterangan: item.keterangan
-			}
-		})
-		// RESPONSE
-		res.status(200).json({
-			status: "success",
-			code: 200,
-			page: 1,
-			limit: new_detail.length,
-			rows: new_detail.length,
-			totalData: new_detail.length,
-			remainder: 0,
-			data: new_detail,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			code: 500,
-			message: error|| ["Internal server error"],
-		});
-	}
+	
+	wipeData()
+
+	config.byPK = req.params.no_masalah
+	await utils.GetData(config, res)
+
 };
 // CREATE DETAIL MASALAH
 const createDetailMasalah = async (no_masalah, detail, transaction) => {
+	
+	wipeData()
+
+	// VALIDATE
+	let check = [
+		{
+			check: "isEmpty",
+			data: detail,
+			field: [
+				{key: "kode_sparepart", title: "Kode Sparepart"},
+				{key: "jumlah", title: "Jumlah"},
+			]
+		},
+		{
+			check: "isDuplicate",
+			data: detail,
+			field: [
+				{key: "kode_sparepart", title: "Kode Sparepart"}
+			]
+		},
+	]
+	let validate = await utils.Validate(null, null, check)
+	if(validate) return {error: validate.message}
 	try {
 		let data = []
-		let  p = ''
-		// VALIDASI
-		for (let i = 0; i < detail.length; i++) {
-			if(detail[i].kode_sparepart == undefined || detail[i].kode_sparepart == '' || detail[i].kode_sparepart.kode_sparepart == 0) throw ['kode sparepart tidak boleh kosong']
-			if(detail[i].jumlah == undefined || detail[i].jumlah == '' || detail[i].jumlah.jumlah == 0) throw [`jumlah ${detail[i].kode_sparepart} tidak boleh kosong`]
-			// if(typeof detail[i].jumlah != "number") throw `jumlah ${detail[i].kode_sparepart} harus berupa angka`
-			if(detail[i].keterangan == undefined || detail[i].keterangan == '' || detail[i].keterangan.keterangan == 0) throw [`keterangan ${detail[i].kode_sparepart} tidak boleh kosong`]
-			if(utils.isDuplicated('kode_sparepart', detail[i].kode_sparepart, detail)) throw ['kode sparepart tidak boleh sama']
-			// CHECK STOCK
-			let log_sparepart = await LogSparepart.findOne({
-				limit: 1,
-				order: [["id_log_sparepart", "DESC"]],
-				where: { kode_sparepart: detail[i].kode_sparepart }
-			})
-			if(log_sparepart == null || log_sparepart.stok_akhir - detail[i].jumlah < 0) throw `stok ${detail[i].kode_sparepart} tidak mencukupi`
-		}
+		
 		for (let i = 0; i < detail.length; i++) {
 			// KURANGI STOK SPAREPART
 			// GET LAST ROW
@@ -161,21 +125,52 @@ const createDetailMasalah = async (no_masalah, detail, transaction) => {
 			let stok_masuk = 0
 			let stok_keluar = detail[i].jumlah
 			let n_stok_akhir = log_sparepart.stok_akhir - detail[i].jumlah
-			let post_sparepart = await logSparepart.createLog(detail[i].kode_sparepart, kategori, keterangan, stok_awal, stok_masuk, stok_keluar, n_stok_akhir, transaction)
-			if(post_sparepart.error) throw post_sparepart
-			let updtStokSp = await stokSparepart.updateStok(detail[i].kode_sparepart, n_stok_akhir, transaction)
-			if(updtStokSp.error) throw updtStokSp
-			// POST DETAIL
-			p = await DetailMasalah.create({
+			let sparepart = await Sparepart.findByPk(detail[i].kode_sparepart)
+			let harga_satuan = sparepart.dataValues.harga_beli / sparepart.dataValues.stok_akhir
+			
+			config.data = {
 				no_masalah: no_masalah,
 				no_urut: i + 1,
 				kode_sparepart: detail[i].kode_sparepart,
 				jumlah: Number(detail[i].jumlah),
-				keterangan: detail[i].keterangan,
+				keterangan: detail[i].keterangan ?? "",
+				biaya: harga_satuan * detail[i].jumlah,
 				status: "true"
-			}, { transaction: transaction })
+			}
+			config.log = [
+				{
+					model: LogSparepart,
+					data: {
+						tanggal: new Date(),
+						kode_sparepart: detail[i].kode_sparepart,
+						kategori: kategori,
+						keterangan: keterangan,
+						stok_awal: stok_awal,
+						stok_masuk: stok_masuk,
+						stok_keluar: stok_keluar,
+						stok_akhir: n_stok_akhir
+					}
+				},
+			]
+			const result = await utils.CreateData(null, config, transaction)
+			if(result.error) throw result.error
 
-			data.push(p)
+			wipeData()
+
+			config.model = Sparepart
+			config.PK = "kode_sparepart"
+
+			config.data = {
+				kode_sparepart: sparepart.dataValues.kode_sparepart,
+				stok_akhir: n_stok_akhir
+			}
+
+			
+			console.log(config);
+			const updateSparepart = await utils.UpdateData(null, config, transaction)
+			if(updateSparepart.error) throw updateSparepart.error
+
+			data.push(result)
 		}
 		return data
 	} catch(err) {
@@ -217,8 +212,14 @@ const deleteDetailMasalah = async (no_masalah, user, transaction) => {
 				stok_akhir: stok_akhir
 			},
 			{ transaction: transaction });
-			let updtStokSp = await stokSparepart.updateStok(data[i].kode_sparepart, stok_akhir, transaction)
-			if(updtStokSp.error) return updtStokSp
+			// let updtStokSp = await stokSparepart.updateStok(data[i].kode_sparepart, stok_akhir, transaction)
+			// if(updtStokSp.error) return updtStokSp
+			
+			let stokSparepart = await Sparepart.findByPk(data[i].kode_sparepart)
+			stokSparepart.update({
+				stok_akhir: stok_akhir
+			}, {transaction: transaction})
+			stokSparepart.save()
 		}
 		// delete detail
 		const del = await DetailMasalah.destroy({ where: { no_masalah: no_masalah }, transaction: transaction });

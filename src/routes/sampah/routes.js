@@ -2,20 +2,20 @@ const express = require("express");
 const router = express.Router();
 const { body } = require("express-validator");
 // controller
-const mesinController = require("../controllers/mesinController");
-const sparepartController = require("../controllers/sparepartController");
-const kategoriMasalahController = require("../controllers/kategoriMasalahController");
-const penyesuaianController = require("../controllers/penyesuaianController");
-const logUserController = require("../controllers/logUserController");
-const userController = require("../controllers/userController");
-const logSparepartController = require("../controllers/logSparepartController");
-const logMesinController = require("../controllers/logMesinController");
-const masalahController = require("../controllers/masalahController");
-const detailMasalahController = require("../controllers/detailMasalahController");
-const permissionController = require("../controllers/permissionController");
-const roleController = require("../controllers/roleController");
-const authenticate = require("../middleware/middleware");
-const stokSparepart = require("../controllers/stokSparepart");
+const mesinController = require("../../controllers/mesinController");
+const sparepartController = require("../../controllers/sparepartController");
+const kategoriMasalahController = require("../../controllers/kategoriMasalahController");
+const penyesuaianController = require("../../controllers/penyesuaianController");
+const logUserController = require("../../controllers/logUserController");
+const userController = require("../../controllers/userController");
+const logSparepartController = require("../../controllers/logSparepartController");
+const logMesinController = require("../../controllers/logMesinController");
+const masalahController = require("../../controllers/masalahController");
+const detailMasalahController = require("../../controllers/detailMasalahController");
+const permissionController = require("../../controllers/permissionController");
+const roleController = require("../../controllers/roleController");
+const authenticate = require("../../middleware/middleware");
+const stokSparepart = require("../../controllers/stokSparepart");
 
 // REGISTER
 router.post(
@@ -307,14 +307,6 @@ router.post(
 		body("nama_sparepart")
 			.notEmpty()
 			.withMessage("Nama sparepart tidak boleh kosong"),
-		body("merk").notEmpty().withMessage("Merk tidak boleh kosong"),
-		body("tipe").notEmpty().withMessage("Tipe tidak boleh kosong"),
-		body("satuan").notEmpty().withMessage("Satuan tidak boleh kosong"),
-		body("harga_beli")
-			.notEmpty()
-			.withMessage("Harga beli tidak boleh kosong")
-			.isNumeric()
-			.withMessage("Harga beli harus berupa angka"),
 	],
 	sparepartController.createSparepart
 );
@@ -426,11 +418,6 @@ router.post(
 		authenticate.authenticateToken,
 		authenticate.authUser('CREATE', 'penyesuaian_stok_sparepart'),
 		// validasi
-		body("tgl_penyesuaian")
-			.notEmpty()
-			.withMessage("Tgl Penyesuaian tidak boleh kosong")
-			.isDate()
-			.withMessage("Format tanggal tidak sesuai"),
 		body("kategori").notEmpty().withMessage("Kategori tidak boleh kosong"),
 		body("keterangan").notEmpty().withMessage("Keterangan tidak boleh kosong"),
 		body("jumlah")
@@ -560,7 +547,6 @@ router.post(
 		authenticate.authUser('CREATE', 'masalah_head'),
 		body("nama_kategori").notEmpty().withMessage("Kategori tidak boleh kosong"),
 		body("kode_mesin").notEmpty().withMessage("Kode mesin tidak boleh kosong"),
-		body("penyebab").notEmpty().withMessage("Penyebab tidak boleh kosong"),
 	],
 	masalahController.createMasalah
 );
@@ -571,9 +557,6 @@ router.post(
 		authenticate.authenticateToken,
 		authenticate.authUser('CREATE', 'masalah_detail'),
 		body("penanganan").notEmpty().withMessage("Penanganan tidak bolek kosong"),
-		body("detail")
-			.notEmpty()
-			.withMessage("Detail tidak boleh kosong"),
 	],
 	masalahController.createPenanganan
 );

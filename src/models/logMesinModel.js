@@ -2,10 +2,13 @@ const { DataTypes } = require('sequelize')
 const sequelize = require('../../connect')
 
 const LogMesin = sequelize.define('LogMesin', {
+    id: {
+        type: DataTypes.NUMBER,
+        primaryKey: true
+    },
     tanggal: {
         type: DataTypes.DATE,
         autoIncrement: false,
-        primaryKey: true
     },
     kode_mesin: {
         type: DataTypes.STRING,
