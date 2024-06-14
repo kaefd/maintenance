@@ -13,15 +13,15 @@ Node, Express
 | :-------------------| :--------------------------------------|
 | [`register`](#register)         | `POST`                                 |
 | [`login`](#login)            | `POST`                                 |
-| [`permission`](#permission)       | `GET` `\|` `POST` `\|` `PUT` `\|` `DELETE`|
-| [`role`](#role)             | `GET` `\|` `POST` `\|` `PUT` `\|` `DELETE`|
-| [`data_user`](#data-user)        | `GET` `\|` `POST` `\|` `PUT` `\|` `DELETE`|
-| [`data_mesin`](#data-mesin)       | `GET` `\|` `POST` `\|` `PUT` `\|` `DELETE`|
-| [`data_sparepart`](#data-sparepart)   | `GET` `\|` `POST` `\|` `PUT` `\|` `DELETE`|
-| [`kategori_masalah`](#kategori-masalah) | `GET` `\|` `POST` `\|` `PUT` `\|` `DELETE`|
-| [`penyesuaian_stok`](#penyesuaian-stok) | `GET` `\|` `POST` `\|` `DELETE`          |
-| [`masalah`](#masalah)          | `GET` `\|` `POST` `\|` `DELETE`          |
-| [`masalah_detail`](#detail-masalah)   | `GET` `\|` `POST` `\|` `DELETE`          |
+| [`permission`](#permission)       | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
+| [`role`](#role)             | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
+| [`data_user`](#data-user)        | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
+| [`data_mesin`](#data-mesin)       | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
+| [`data_sparepart`](#data-sparepart)   | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
+| [`kategori_masalah`](#kategori-masalah) | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
+| [`penyesuaian_stok`](#penyesuaian-stok) | `GET` ` ` `POST` ` ` `DELETE`          |
+| [`masalah`](#masalah)          | `GET` ` ` `POST` ` ` `DELETE`          |
+| [`masalah_detail`](#detail-masalah)   | `GET` ` ` `POST` ` ` `DELETE`          |
 | [`log_mesin`](#log-mesin)        | `GET`                                  |
 | [`log_sparepart`](#log-sparepart)    | `GET`                                  |
 | [`log_user`](#log-user)         | `GET`                                  |
@@ -35,7 +35,7 @@ Node, Express
 ### Register
 
 - Header
-```http
+```
   POST /api/register
 ```
 - Body
@@ -61,7 +61,7 @@ NOTE: new user need to be activated by admin
 
 ### Login
 - Header
-```http
+```
   POST /api/login
 ```
 - Body
@@ -81,7 +81,7 @@ NOTE: new user need to be activated by admin
 ### Permission
 #### Get All Data
 - Header
-```http
+```
   GET /api/permission
 ```
 | Parameter | Type     | Description                |
@@ -112,7 +112,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/permission/${id}
 ```
 | Parameter | Type     | Description                       |
@@ -140,7 +140,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create data
 - Header
-```http
+```
   POST /api/permission
 ```
 | Parameter | Type     | Description                |
@@ -173,7 +173,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Update Data
 - Header
-```http
+```
   PUT /api/permission/${id}
 ```
 | Parameter | Type     | Description                |
@@ -202,7 +202,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Delete data
 - Header
-```http
+```
   DELETE /api/permission/${id}
 ```
 | Parameter | Type     | Description                |
@@ -223,7 +223,7 @@ NOTE: new user need to be activated by admin
 ### Role
 #### Get All Data
 - Header
-```http
+```
   GET /api/role
 ```
 | Parameter | Type     | Description                |
@@ -252,7 +252,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/role/${id}
 ```
 | Parameter | Type     | Description                       |
@@ -277,7 +277,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/role/search
 ```
 | Parameter | Type     | Description                |
@@ -307,7 +307,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create data
 - Header
-```http
+```
   POST /api/role
 ```
 | Parameter | Type     | Description                |
@@ -335,7 +335,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Update Data
 - Header
-```http
+```
   PUT /api/role/${id}
 ```
 | Parameter | Type     | Description                |
@@ -361,7 +361,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Delete data
 - Header
-```http
+```
   DELETE /api/role/${id}
 ```
 | Parameter | Type     | Description                |
@@ -383,7 +383,7 @@ NOTE: new user need to be activated by admin
 ### Data user
 #### Get All Data
 - Header
-```http
+```
   GET /api/data_user
 ```
 | Parameter | Type     | Description                |
@@ -418,7 +418,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/data_user/${username}
 ```
 | Parameter | Type     | Description                       |
@@ -449,7 +449,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/data_user/search
 ```
 | Parameter | Type     | Description                |
@@ -485,7 +485,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create data
 - Header
-```http
+```
   POST /api/data_user
 ```
 | Parameter | Type     | Description                |
@@ -512,7 +512,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Update Data
 - Header
-```http
+```
   PUT /api/data_user/${username}
 ```
 | Parameter | Type     | Description                |
@@ -539,7 +539,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Delete data
 - Header
-```http
+```
   DELETE /api/data_user/${username}
 ```
 | Parameter | Type     | Description                |
@@ -560,7 +560,7 @@ NOTE: new user need to be activated by admin
 ### Data Mesin
 #### Get All Data
 - Header
-```http
+```
   GET /api/data_mesin
 ```
 | Parameter | Type     | Description                |
@@ -598,7 +598,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/data_mesin/${kode_mesin}
 ```
 | Parameter | Type     | Description                       |
@@ -632,7 +632,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/data_mesin/search
 ```
 | Parameter | Type     | Description                |
@@ -671,7 +671,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create data
 - Header
-```http
+```
   POST /api/data_mesin
 ```
 | Parameter | Type     | Description                |
@@ -712,7 +712,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Update Data
 - Header
-```http
+```
   PUT /api/data_mesin/${kode_mesin}
 ```
 | Parameter | Type     | Description                |
@@ -742,7 +742,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Delete data
 - Header
-```http
+```
   DELETE /api/data_mesin/${kode_mesin}
 ```
 | Parameter | Type     | Description                |
@@ -763,7 +763,7 @@ NOTE: new user need to be activated by admin
 ### Data Sparepart
 #### Get All Data
 - Header
-```http
+```
   GET /api/data_sparepart
 ```
 | Parameter | Type     | Description                |
@@ -804,7 +804,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/data_sparepart/${kode_sparepart}
 ```
 | Parameter | Type     | Description                       |
@@ -841,7 +841,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/data_sparepart/search
 ```
 | Parameter | Type     | Description                |
@@ -883,7 +883,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create data
 - Header
-```http
+```
   POST /api/data_sparepart
 ```
 | Parameter | Type     | Description                |
@@ -931,7 +931,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Update Data
 - Header
-```http
+```
   PUT /api/data_sparepart/${kode_sparepart}
 ```
 | Parameter | Type     | Description                |
@@ -964,7 +964,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Delete data
 - Header
-```http
+```
   DELETE /api/data_sparepart/${kode_sparepart}
 ```
 | Parameter | Type     | Description                |
@@ -985,7 +985,7 @@ NOTE: new user need to be activated by admin
 ### Kategori Masalah
 #### Get All Data
 - Header
-```http
+```
   GET /api/kategori_masalah
 ```
 | Parameter | Type     | Description                |
@@ -1014,7 +1014,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/kategori_masalah/${id}
 ```
 | Parameter | Type     | Description                       |
@@ -1039,7 +1039,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/kategori_masalah/search
 ```
 | Parameter | Type     | Description                |
@@ -1069,7 +1069,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create data
 - Header
-```http
+```
   POST /api/kategori_masalah
 ```
 | Parameter | Type     | Description                |
@@ -1098,7 +1098,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Update Data
 - Header
-```http
+```
   PUT /api/kategori_masalah/${id}
 ```
 | Parameter | Type     | Description                |
@@ -1124,7 +1124,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Delete data
 - Header
-```http
+```
   DELETE /api/kategori_masalah/${id}
 ```
 | Parameter | Type     | Description                |
@@ -1145,7 +1145,7 @@ NOTE: new user need to be activated by admin
 ### Penyesuaian stok_akhir
 #### Get All Data
 - Header
-```http
+```
   GET /api/penyesuaian_stok
 ```
 | Parameter | Type     | Description                |
@@ -1184,7 +1184,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/penyesuaian_stok/${no_penyesuaian}
 ```
 | Parameter | Type     | Description                       |
@@ -1219,7 +1219,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/penyesuaian_stok/search
 ```
 | Parameter | Type     | Description                |
@@ -1259,7 +1259,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create data
 - Header
-```http
+```
   POST /api/penyesuaian_stok
 ```
 | Parameter | Type     | Description                |
@@ -1301,7 +1301,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Delete data
 - Header
-```http
+```
   DELETE /api/penyesuaian_stok/${no_penyesuaian}
 ```
 | Parameter | Type     | Description                |
@@ -1322,7 +1322,7 @@ NOTE: new user need to be activated by admin
 ### Masalah
 #### Get All Data
 - Header
-```http
+```
   GET /api/masalah
 ```
 | Parameter | Type     | Description                |
@@ -1367,7 +1367,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/masalah/${no_masalah}
 ```
 | Parameter | Type     | Description                       |
@@ -1407,7 +1407,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/masalah/search
 ```
 | Parameter | Type     | Description                |
@@ -1452,7 +1452,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create Masalah
 - Header
-```http
+```
   POST /api/masalah
 ```
 | Parameter | Type     | Description                |
@@ -1499,7 +1499,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Delete Masalah
 - Header
-```http
+```
   DELETE /api/masalah/${no_masalah}
 ```
 | Parameter | Type     | Description                |
@@ -1520,7 +1520,7 @@ NOTE: new user need to be activated by admin
 ### Detail Masalah
 #### Get All Data
 - Header
-```http
+```
   GET /api/masalah_detail
 ```
 | Parameter | Type     | Description                |
@@ -1554,7 +1554,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/masalah_detail/${no_masalah}
 ```
 | Parameter | Type     | Description                       |
@@ -1584,7 +1584,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/masalah_detail/search
 ```
 | Parameter | Type     | Description                |
@@ -1619,7 +1619,7 @@ NOTE: new user need to be activated by admin
 ```
 #### Create Penanganan
 - Header
-```http
+```
   POST /api/masalah_detail/${no_masalah}
 ```
 | Parameter | Type     | Description                |
@@ -1672,7 +1672,7 @@ Note: *detail is optional
 ```
 #### Delete Penanganan
 - Header
-```http
+```
   DELETE /api/masalah_detail/${no_masalah}
 ```
 | Parameter | Type     | Description                |
@@ -1693,7 +1693,7 @@ Note: *detail is optional
 ### Log Mesin
 #### Get All Data
 - Header
-```http
+```
   GET /api/log_mesin
 ```
 | Parameter | Type     | Description                |
@@ -1727,7 +1727,7 @@ Note: *detail is optional
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/log_mesin/${id}
 ```
 | Parameter | Type     | Description                       |
@@ -1757,7 +1757,7 @@ Note: *detail is optional
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/log_mesin/search
 ```
 | Parameter | Type     | Description                |
@@ -1793,7 +1793,7 @@ Note: *detail is optional
 ### Log Sparepart
 #### Get All Data
 - Header
-```http
+```
   GET /api/log_sparepart
 ```
 | Parameter | Type     | Description                |
@@ -1829,7 +1829,7 @@ Note: *detail is optional
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/log_sparepart/${id}
 ```
 | Parameter | Type     | Description                       |
@@ -1861,7 +1861,7 @@ Note: *detail is optional
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/log_sparepart/search
 ```
 | Parameter | Type     | Description                |
@@ -1899,7 +1899,7 @@ Note: *detail is optional
 ### Log user
 #### Get All Data
 - Header
-```http
+```
   GET /api/log_user
 ```
 | Parameter | Type     | Description                |
@@ -1931,7 +1931,7 @@ Note: *detail is optional
 ```
 #### Get data
 - Header
-```http
+```
   GET /api/log_user/${id}
 ```
 | Parameter | Type     | Description                       |
@@ -1959,7 +1959,7 @@ Note: *detail is optional
 ```
 #### Search data
 - Header
-```http
+```
   GET /api/log_user/search
 ```
 | Parameter | Type     | Description                |
