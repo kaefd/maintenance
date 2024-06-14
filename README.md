@@ -11,17 +11,17 @@ Node, Express
 
 | endpoint            | method                                 |
 | :-------------------| :--------------------------------------|
-| [`register`](#register)         | `POST`                                 |
+| [`register`](#register)         | [`POST`](#register)                                 |
 | [`login`](#login)            | `POST`                                 |
-| [`permission`](#permission)       | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
-| [`role`](#role)             | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
-| [`data_user`](#data-user)        | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
-| [`data_mesin`](#data-mesin)       | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
-| [`data_sparepart`](#data-sparepart)   | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
-| [`kategori_masalah`](#kategori-masalah) | `GET` ` ` `POST` ` ` `PUT` ` ` `DELETE`|
-| [`penyesuaian_stok`](#penyesuaian-stok) | `GET` ` ` `POST` ` ` `DELETE`          |
-| [`masalah`](#masalah)          | `GET` ` ` `POST` ` ` `DELETE`          |
-| [`masalah_detail`](#detail-masalah)   | `GET` ` ` `POST` ` ` `DELETE`          |
+| [`permission`](#permission)       | `GET` `POST` `PUT` `DELETE`|
+| [`role`](#role)             | `GET` `POST` `PUT` `DELETE`|
+| [`data_user`](#data-user)        | `GET` `POST` `PUT` `DELETE`|
+| [`data_mesin`](#data-mesin)       | `GET` `POST` `PUT` `DELETE`|
+| [`data_sparepart`](#data-sparepart)   | `GET` `POST` `PUT` `DELETE`|
+| [`kategori_masalah`](#kategori-masalah) | `GET` `POST` `PUT` `DELETE`|
+| [`penyesuaian_stok`](#penyesuaian-stok) | `GET` `POST` `DELETE`          |
+| [`masalah`](#masalah)          | `GET` `POST` `DELETE`          |
+| [`masalah_detail`](#detail-masalah)   | `GET` `POST` `DELETE`          |
 | [`log_mesin`](#log-mesin)        | `GET`                                  |
 | [`log_sparepart`](#log-sparepart)    | `GET`                                  |
 | [`log_user`](#log-user)         | `GET`                                  |
