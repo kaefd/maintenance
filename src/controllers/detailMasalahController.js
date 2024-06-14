@@ -112,8 +112,6 @@ const createDetailMasalah = async (no_masalah, detail, transaction) => {
 		let data = []
 		
 		for (let i = 0; i < detail.length; i++) {
-			// KURANGI STOK SPAREPART
-			// GET LAST ROW
 			let log_sparepart = await LogSparepart.findOne({
 				limit: 1,
 				order: [["id_log_sparepart", "DESC"]],

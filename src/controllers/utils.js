@@ -56,18 +56,22 @@ const GetData = async (config, res) => {
             }
         }
         if(config.hideFields) {
-            data = data.map(el => { return Object.fromEntries(Object.entries(el).filter(([key]) => key != config.hideFields)) })
-            allData = allData.map(el => { return Object.fromEntries(Object.entries(el).filter(([key]) => key != config.hideFields)) })
+            data = data.map(el => { return Object.fromEntries(Object.entries(el).filter(([key]) => config.hideFields.filter(el => el == key) == "" )) })
+            allData = allData.map(el => { return Object.fromEntries(Object.entries(el).filter(([key]) => config.hideFields.filter(el => el == key) == "" )) })
         }
         // DATA BY KEYWORD IN SEARCH
         if(config.input) {
-            data = allData.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(config.input.toLowerCase()))) ?? []
+            data = data.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(config.input.toLowerCase()))) ?? []
             total = data.length
         }
         // DATA BY PK
         if(config.byPK) {
-            data = allData.find(el => el[config.PK] == config.byPK) ?? {}
+            data = await model.findOne({ where: { [config.PK]: config.byPK }})
+            data = data.dataValues ?? {}            
             total = data[config.PK] ? 1 : 0
+            if(config.hideFields) {
+                data = Object.fromEntries(Object.entries(data).filter(([key]) => config.hideFields.filter(el => el == key) == "" ))
+            }
         }
 
         // RETURN RESULT

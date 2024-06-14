@@ -14,6 +14,7 @@ const PermissionModel = require("../models/permissionModel");
 let config = {
 	model: PermissionModel,
 	PK: "id_permission",
+	hideFields: ["id_permission"],
 	modelAssociation: [
 		{
 			toModel: RoleModel,
@@ -41,6 +42,7 @@ const wipeData = () => {
 	config = {
 		model: PermissionModel,
 		PK: "id_permission",
+		hideFields: ["id_permission"],
 		modelAssociation: [
 			{
 				toModel: RoleModel,

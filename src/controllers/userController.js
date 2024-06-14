@@ -15,7 +15,7 @@ const LogUser = require("../models/logUser");
 let config = {
 	model: UserModel,
 	PK: "username",
-    hideFields: ["password"],
+    hideFields: ["password", "role_id"],
 	whereCondition: { status: "true" },
     modelAssociation: [
         {
@@ -43,7 +43,7 @@ const wipeData = () => {
     config = {
         model: UserModel,
         PK: "username",
-        hideFields: ["password"],
+        hideFields: ["password", "role_id"],
         whereCondition: { status: "true" },
         modelAssociation: [
             {
@@ -199,8 +199,17 @@ const getSearch = async (req, res) => {
 
     wipeData()
 
+	let whereCondition = Object.fromEntries(
+		Object.entries(req.query).filter(
+			([key, value]) => key != "limit" && key != "page" && key != "search"
+		)
+	);
 	config.input = req.query.search
+	config.limit = req.query.limit
+	config.page = req.query.page
+	config.whereCondition = whereCondition
 	await utils.GetData(config, res)
+    
 }
 // GET USER BY KODE
 const getByKode = async (req, res) => {
@@ -273,7 +282,6 @@ const createUser = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Berhasil menambahkan data"],
-            data: result
 		})
     } catch (error) {
         await transaction.rollback();
