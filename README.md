@@ -56,7 +56,7 @@ Node, Express
 }
 ```
 ```
-NOTE: new user need to be activated by admin
+NOTE: new user must be activated by admin
 ```
 
 ### Login
