@@ -283,8 +283,6 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -455,8 +453,6 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -638,8 +634,6 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -847,8 +841,6 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -1045,8 +1037,6 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -1225,8 +1215,6 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -1413,8 +1401,6 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -1590,8 +1576,6 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -1763,8 +1747,6 @@ Note: *detail is optional
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -1867,8 +1849,6 @@ Note: *detail is optional
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
@@ -1965,8 +1945,6 @@ Note: *detail is optional
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
 | `search`  | `string` | **Required**. search to fetch data|
 
 - Response
