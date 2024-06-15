@@ -21,14 +21,7 @@ const getAll = async (req, res) => {
 
 	wipeData()
 
-	let whereCondition = Object.fromEntries(
-		Object.entries(req.query).filter(
-			([key, value]) => key != "limit" && key != "page"
-		)
-	);
-	config.limit = req.query.limit
-	config.page = req.query.page
-	config.whereCondition = whereCondition
+	config.input = req.query.search
 	await utils.GetData(config, res)
 }
 // SEARCH

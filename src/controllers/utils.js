@@ -12,10 +12,6 @@ const GetData = async (config, res) => {
      * 
      */
 
-    // LIMIT, PAGE & OFFSET
-    const limit = config.limit ?? 10
-    const page = config.page ?? 1
-    const offset = (page - 1) * limit
     // MODEL ASSOCIATION
     if(config.modelAssociation) {
         for (let i = 0; i < config.modelAssociation.length; i++) {
@@ -26,11 +22,17 @@ const GetData = async (config, res) => {
         }
     }
     try {
+        
         const whereCondition = config.whereCondition
         const model = config.model
         // GET ALL DATA
         let allData = await model.findAll({ where: whereCondition })
         allData = allData.map(i => i.dataValues)
+
+        // LIMIT, PAGE & OFFSET
+        const limit = config.limit ? (config.limit * 0 == 0 ? config.limit : allData.length) : 10
+        const page = config.page ?? 1
+        const offset = (page - 1) * limit
 
         let total = allData.length
         let data = await model.findAll({
@@ -40,9 +42,25 @@ const GetData = async (config, res) => {
             order: config.order ?? [[config.PK, "ASC"]],
             include: config.include ?? null
         })
+        data = data.map(i => i.dataValues)
+
+        // DATA BY PK
+        if(config.byPK) {
+            data = await model.findAll({ 
+                where: { [config.PK]: config.byPK },
+                include: config.include ?? null
+            })
+
+            data = data.length > 0 ? data.map(el => el.dataValues)[0] : false
+            
+            total = data[config.PK] ? 1 : 0
+            if(config.hideFields) {
+                data = data ? Object.fromEntries(Object.entries(data).filter(([key]) => config.hideFields.filter(el => el == key) == "" )) : false
+            }
+            data = data ? [data] : []
+        }
         // ERROR CONDITIONAL
         if(!data) throw ["Data tidak ditemukan"]
-        data = data.map(i => i.dataValues)
         // MAPPING DATA
         if(config.modelAssociation) {
             for (let i = 0; i < config.include.length; i++) {
@@ -61,17 +79,12 @@ const GetData = async (config, res) => {
         }
         // DATA BY KEYWORD IN SEARCH
         if(config.input) {
-            data = data.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(config.input.toLowerCase()))) ?? []
+            data = allData.filter(item => Object.values(item).some(value => typeof value == 'string' && value.toLowerCase().includes(config.input.toLowerCase()))) ?? []
             total = data.length
         }
-        // DATA BY PK
+
         if(config.byPK) {
-            data = await model.findOne({ where: { [config.PK]: config.byPK }})
-            data = data.dataValues ?? {}            
-            total = data[config.PK] ? 1 : 0
-            if(config.hideFields) {
-                data = Object.fromEntries(Object.entries(data).filter(([key]) => config.hideFields.filter(el => el == key) == "" ))
-            }
+            data = data.length > 0 ? data[0] : {}
         }
 
         // RETURN RESULT

@@ -11,20 +11,20 @@ Node, Express
 
 | endpoint            | method                                 |
 | :-------------------| :--------------------------------------|
-| [`register`](#register)         | [`POST`](#register)                                 |
-| [`login`](#login)            | [`POST`](#login)                                 |
-| [`permission`](#permission)       | [`GET`](#permission) [`POST`](#create-data) [`PUT`](#update-data) [`DELETE`](#delete-data)|
-| [`role`](#role)             | [`GET`](#role) [`POST`](#create-data-1) [`PUT`](#update-data-1) [`DELETE`](#delete-data-1)|
-| [`data_user`](#data-user)        | [`GET`](#data-user) [`POST`](#create-data-2) [`PUT`](#update-data-2) [`DELETE`](#delete-data-2)|
-| [`data_mesin`](#data-mesin)       | [`GET`](#data-mesin) [`POST`](#create-data-3) [`PUT`](#update-data-3) [`DELETE`](#delete-data-3)|
-| [`data_sparepart`](#data-sparepart)   | [`GET`](#data-sparepart) [`POST`](#create-data-4) [`PUT`](#update-data-4) [`DELETE`](#delete-data-4)|
-| [`kategori_masalah`](#kategori-masalah) | [`GET`](#kategori-masalah) [`POST`](#create-data-5) [`PUT`](#create-data-5) [`DELETE`](#delete-data-5)|
-| [`penyesuaian_stok`](#penyesuaian-stok) | [`GET`](#penyesuaian-stok) [`POST`](#create-data-6) [`DELETE`](#delete-data-6)          |
-| [`masalah`](#masalah)          | [`GET`](#masalah) [`POST`](#create-masalah) [`DELETE`](#delete-masalah)          |
-| [`masalah_detail`](#detail-masalah)   | [`GET`](#detail-masalah) [`POST`](#create-penanganan) [`DELETE`](#delete-penanganan)          |
-| [`log_mesin`](#log-mesin)        | [`GET`](#log-mesin)                                  |
-| [`log_sparepart`](#log-sparepart)    | [`GET`](#log-sparepart)                                  |
-| [`log_user`](#log-user)         | [`GET`](#log-user)                                  |
+| [`register`](#register)         | `POST`                                 |
+| [`login`](#login)            | `POST`                                 |
+| [`permission`](#permission)       | `GET` `POST` `PUT` `DELETE`|
+| [`role`](#role)             | `GET` `POST` `PUT` `DELETE`|
+| [`data_user`](#data-user)        | `GET` `POST` `PUT` `DELETE`|
+| [`data_mesin`](#data-mesin)       | `GET` `POST` `PUT` `DELETE`|
+| [`data_sparepart`](#data-sparepart)   | `GET` `POST` `PUT` `DELETE`|
+| [`kategori_masalah`](#kategori-masalah) | `GET` `POST` `PUT` `DELETE`|
+| [`penyesuaian_stok`](#penyesuaian-stok) | `GET` `POST` `DELETE`          |
+| [`masalah`](#masalah)          | `GET``POST` `DELETE`          |
+| [`masalah_detail`](#detail-masalah)   | `GET` `POST` `DELETE`          |
+| [`log_mesin`](#log-mesin)        | `GET`                                  |
+| [`log_sparepart`](#log-sparepart)    | `GET`                                  |
+| [`log_user`](#log-user)         | `GET`                                  |
 
 
 
