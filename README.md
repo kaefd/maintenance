@@ -20,7 +20,7 @@ Node, Express
 | [`data_sparepart`](#data-sparepart)   | `GET` `POST` `PUT` `DELETE`|
 | [`kategori_masalah`](#kategori-masalah) | `GET` `POST` `PUT` `DELETE`|
 | [`penyesuaian_stok`](#penyesuaian-stok) | `GET` `POST` `DELETE`          |
-| [`masalah`](#masalah)          | `GET``POST` `DELETE`          |
+| [`masalah`](#masalah)          | `GET` `POST` `DELETE`          |
 | [`masalah_detail`](#detail-masalah)   | `GET` `POST` `DELETE`          |
 | [`log_mesin`](#log-mesin)        | `GET`                                  |
 | [`log_sparepart`](#log-sparepart)    | `GET`                                  |
