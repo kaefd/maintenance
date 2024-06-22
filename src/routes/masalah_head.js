@@ -9,7 +9,7 @@ router.get(
 	"/",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'masalah_head'),
+		authenticate.authUser('READ', 'data_masalah'),
 	],
 	masalahController.getAll
 );
@@ -17,7 +17,7 @@ router.get(
 	"/search",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'masalah_head'),
+		authenticate.authUser('READ', 'data_masalah'),
 	],
 	masalahController.getSearch
 );
@@ -26,7 +26,7 @@ router.get(
 	"/:no_masalah",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'masalah_head'),
+		authenticate.authUser('READ', 'data_masalah'),
 	],
 	masalahController.getByKode
 );
@@ -35,7 +35,7 @@ router.post(
 	"/",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('CREATE', 'masalah_head'),
+		authenticate.authUser('CREATE', 'data_masalah'),
 		body("nama_kategori").notEmpty().withMessage("Kategori tidak boleh kosong"),
 		body("kode_mesin").notEmpty().withMessage("Kode mesin tidak boleh kosong"),
 	],
@@ -45,7 +45,7 @@ router.delete(
 	"/:no_masalah",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('DELETE', 'masalah_head'),
+		authenticate.authUser('DELETE', 'data_masalah'),
 	],
 	masalahController.deleteMasalah
 );

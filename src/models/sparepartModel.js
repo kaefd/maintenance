@@ -15,22 +15,22 @@ const Sparepart = sequelize.define('Sparepart', {
     merk: {
         type: DataTypes.STRING,
         autoIncrement: false,
-        allowNull: false,
+        allowNull: true,
     },
     tipe: {
         type: DataTypes.STRING,
         autoIncrement: false,
-        allowNull: false
+        allowNull: true
     },
     satuan: {
         type: DataTypes.STRING,
         autoIncrement: false,
-        allowNull: false
+        allowNull: true
     },
     harga_beli: {
         type: DataTypes.DOUBLE,
         autoIncrement: false,
-        allowNull: false
+        allowNull: true
     },
     stok_minus: {
         type: DataTypes.NUMBER,

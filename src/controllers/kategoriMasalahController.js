@@ -8,14 +8,12 @@ const LogUser = require("../models/logUser");
 // BASE CONFIGURATION
 let config = {
 	model: KategoriMasalah,
-	hideFields: ["id_kategori"],
 	PK: "id_kategori",
 };
 
 const wipeData = () => {
 	config = {
 		model: KategoriMasalah,
-		hideFields: ["id_kategori"],
 		PK: "id_kategori",
 	}
 }

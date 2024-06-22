@@ -15,7 +15,7 @@ const LogUser = require("../models/logUser");
 let config = {
 	model: UserModel,
 	PK: "username",
-    hideFields: ["password", "role_id"],
+    hideFields: ["password"],
 	whereCondition: { status: "true" },
     modelAssociation: [
         {
@@ -43,7 +43,7 @@ const wipeData = () => {
     config = {
         model: UserModel,
         PK: "username",
-        hideFields: ["password", "role_id"],
+        hideFields: ["password"],
         whereCondition: { status: "true" },
         modelAssociation: [
             {

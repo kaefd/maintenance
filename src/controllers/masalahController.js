@@ -262,7 +262,7 @@ const createPenanganan = async (req, res) => {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message: error ?? ["Internal Server Error"],
+			message: [error] ?? ["Internal Server Error"],
 		});
 	}
 }

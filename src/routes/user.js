@@ -10,7 +10,7 @@ router.get(
 	"/",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'data_user'),
+		// authenticate.authUser('READ', 'data_user'),
 	],
 	userController.getAll
 );
@@ -26,7 +26,7 @@ router.get(
 	"/:username",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'data_user'),
+		// authenticate.authUser('READ', 'data_user'),
 	],
 	userController.getByKode
 );

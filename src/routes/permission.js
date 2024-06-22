@@ -10,7 +10,7 @@ router.get(
 	"/",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'role_permissions'),
+		// authenticate.authUser('READ', 'role_permissions'),
 	],
 	permissionController.getAll
 );
@@ -19,7 +19,7 @@ router.get(
 	"/:id",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'role_permissions'),
+		// authenticate.authUser('READ', 'role_permissions'),
 	],
 	permissionController.getByKode
 );

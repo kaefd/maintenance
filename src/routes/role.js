@@ -10,7 +10,7 @@ router.get(
 	"/",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'role'),
+		// authenticate.authUser('READ', 'role'),
 	],
 	roleController.getAll
 );
@@ -26,7 +26,7 @@ router.get(
 	"/:id",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'role'),
+		// authenticate.authUser('READ', 'role'),
 	],
 	roleController.getByKode
 );

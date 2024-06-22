@@ -103,23 +103,21 @@ const createPermission = async (req, res) => {
 	let validate = await utils.Validate(req, res, check)
 	if(validate) return validate
 
-    if(nama_role) {
-        role = await RoleModel.findOne({
-            where: { nama_role: nama_role }
-        })
-        check = [
-            {
-                model: PermissionModel,
-                whereCondition: { 
-                    role_id: role.id_role,
-                    method: method.toUpperCase(),
-                    table: table,
-                },
-                title: "Permission",
-                check: "isDuplicate",
-            },
-        ];
-    }
+    // if(nama_role) {
+        
+    //     check = [
+    //         {
+    //             model: PermissionModel,
+    //             whereCondition: { 
+    //                 role_id: role.id_role,
+    //                 method: method.toUpperCase(),
+    //                 table: table,
+    //             },
+    //             title: "Permission",
+    //             check: "isDuplicate",
+    //         },
+    //     ];
+    // }
     // VALIDATE
 	validate = await utils.Validate(req, res, check)
 	if(validate) return validate
@@ -127,24 +125,40 @@ const createPermission = async (req, res) => {
     // START TRANSACTION
     const transaction = await sequelize.transaction();
     try {
-        config.data = {
-            role_id: role.id_role,
-            method: method,
-            table: table,
-        }
-        config.log = [
-            {
-				model: LogUser,
-				data: {
-					tanggal: new Date(),
-					kategori: "Menambahkan data role permission",
-					keterangan: role.id_role,
-					kode_user: req.session.user,
-				}
+		let role = await RoleModel.findOne({
+            where: { nama_role: nama_role }
+        })
+		// SET METHOD
+		let add = Object.fromEntries(
+			Object.entries(method).filter(([key, value]) => value == true)
+		);
+		
+		await PermissionModel.destroy({ 
+			where: {
+				role_id: role.id_role,
+				table: table
+			}}, {transaction: transaction})
+		
+		for (let i = 0; i < Object.keys(add).length; i++) {
+			config.data = {
+				role_id: role.id_role,
+				method: Object.keys(add)[i],
+				table: table,
 			}
-        ]
-        const result = await utils.CreateData(req, config, transaction)
-		if(result.error) throw result.error
+			config.log = [
+				{
+					model: LogUser,
+					data: {
+						tanggal: new Date(),
+						kategori: "Menambahkan data role permission",
+						keterangan: role.id_role,
+						kode_user: req.session.user,
+					}
+				}
+			]
+			const result = await utils.CreateData(req, config, transaction)
+			if(result.error) throw result.error
+		}
         // COMMIT
         await transaction.commit();
         // RESPONSE
@@ -152,7 +166,6 @@ const createPermission = async (req, res) => {
 			status: "success",
 			code: 201,
 			message: ["Berhasil menambahkan data"],
-            data: result
 		});
     } catch (error) {
         await transaction.rollback();

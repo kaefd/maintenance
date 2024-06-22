@@ -152,7 +152,12 @@ NOTE: new user must be activated by admin
 {
     "role_id": Number,
     "nama_role": String,
-    "method": String,
+    "method": {
+      "READ": Boolean,
+      "CREATE": Boolean,
+      "EDIT": Boolean,
+      "DELETE": Boolean,
+    },
     "table": String
 } 
 ```
@@ -164,11 +169,6 @@ NOTE: new user must be activated by admin
   "message": [
     "Berhasil menambahkan data"
   ],
-  "data": {
-    "role_id": Number,
-    "method": String,
-    "table": String
-  }
 }
 ```
 #### Update Data
@@ -186,7 +186,12 @@ NOTE: new user must be activated by admin
 {
     "role_id": Number,
     "nama_role": String,
-    "method": String,
+    "method": {
+      "READ": Boolean,
+      "CREATE": Boolean,
+      "EDIT": Boolean,
+      "DELETE": Boolean,
+    },
     "table": String
 } 
 ```
@@ -398,6 +403,7 @@ NOTE: new user must be activated by admin
   "data": [
     {
       "username": String,
+      "role_id": Number,
       "created_by": String,
       "created_date": String,
       "deleted_by: String,
@@ -430,6 +436,7 @@ NOTE: new user must be activated by admin
   "code": 200,
   "data": {
       "username": String,
+      "role_id": Number,
       "created_by": String,
       "created_date": String,
       "deleted_by: String,
@@ -463,6 +470,7 @@ NOTE: new user must be activated by admin
   "data": [
     {
       "username": String,
+      "role_id": Number,
       "created_by": String,
       "created_date": String,
       "deleted_by: String,
@@ -1081,9 +1089,9 @@ NOTE: new user must be activated by admin
     "Berhasil menambahkan data"
   ],
   data: {
-      "nama_kategori": String
-    },
-  ],
+    "id_kategori": Number,
+    "nama_kategori": String
+  },
 }
 ```
 #### Update Data
@@ -1099,6 +1107,7 @@ NOTE: new user must be activated by admin
 - Body
 ```
 {
+  "id_kategori": Number,
   "nama_kategori": String
 }
 ```

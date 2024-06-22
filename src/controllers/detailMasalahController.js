@@ -79,7 +79,9 @@ const getByKode = async (req, res) => {
 	
 	wipeData()
 
-	config.byPK = req.params.no_masalah
+	config.whereCondition = {
+		no_masalah: req.params.no_masalah
+	}
 	await utils.GetData(config, res)
 
 };
@@ -117,6 +119,7 @@ const createDetailMasalah = async (no_masalah, detail, transaction) => {
 				order: [["id_log_sparepart", "DESC"]],
 				where: { kode_sparepart: detail[i].kode_sparepart }
 			})
+			if(!log_sparepart || detail[i].jumlah > log_sparepart.stok_akhir) throw `Stok ${detail[i].kode_sparepart} tidak mencukupi`
 			let kategori = 'Barang keluar'
 			let keterangan = no_masalah
 			let stok_awal = log_sparepart.stok_akhir
@@ -153,20 +156,10 @@ const createDetailMasalah = async (no_masalah, detail, transaction) => {
 			const result = await utils.CreateData(null, config, transaction)
 			if(result.error) throw result.error
 
-			wipeData()
-
-			config.model = Sparepart
-			config.PK = "kode_sparepart"
-
-			config.data = {
-				kode_sparepart: sparepart.dataValues.kode_sparepart,
+			sparepart.update({
 				stok_akhir: n_stok_akhir
-			}
-
-			
-			console.log(config);
-			const updateSparepart = await utils.UpdateData(null, config, transaction)
-			if(updateSparepart.error) throw updateSparepart.error
+			})
+			sparepart.save()
 
 			data.push(result)
 		}
