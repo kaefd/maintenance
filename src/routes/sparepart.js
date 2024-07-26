@@ -10,7 +10,6 @@ router.get(
 	"/",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'data_sparepart'),
 	],
 	sparepartController.getAll
 );
@@ -18,7 +17,6 @@ router.get(
 	"/search",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'data_sparepart'),
 	],
 	sparepartController.getSearch
 );
@@ -27,7 +25,6 @@ router.get(
 	"/:kode_sparepart",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'data_sparepart'),
 	],
 	sparepartController.getByKode
 );
@@ -36,7 +33,6 @@ router.post(
 	"",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('CREATE', 'data_sparepart'),
 		// validasi
 		body("kode_sparepart")
 			.notEmpty()
@@ -54,7 +50,6 @@ router.put(
 	"/:kode",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('EDIT', 'data_sparepart'),
 	],
 	sparepartController.editSparepart
 );
@@ -63,7 +58,6 @@ router.delete(
 	"/:kode",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('DELETE', 'data_sparepart'),
 	],
 	sparepartController.deleteSparepart
 );

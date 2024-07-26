@@ -110,7 +110,7 @@ const register = async (req, res) => {
             {
 				model: LogUser,
 				data: {
-                    kode_user: username,
+                    username: username,
 					tanggal: new Date(),
 					kategori: "Melakukan registrasi",
 					keterangan: username,
@@ -227,12 +227,6 @@ const createUser = async (req, res) => {
 			whereCondition: {username: username},
 			title: "Username",
 			check: "isDuplicate",
-		},
-        {
-			model: RoleModel,
-			whereCondition: {nama_role: nama_role},
-			title: "Role",
-			check: "isAvailable",
 		}
 	];
 	validate = await utils.Validate(req, res, check)
@@ -240,13 +234,16 @@ const createUser = async (req, res) => {
     // START TRANSACTION
     const transaction = await sequelize.transaction();
     try {
-        let role = await RoleModel.findOne({ where: { nama_role: nama_role } })
+        let role;
+        if(nama_role) {
+            role = await RoleModel.findOne({ where: { nama_role: nama_role } })
+        }
         // HASH PASSWORD
         const pass = await fun.generateHash(password)
         config.data = {
             username: username.toString(),
             password: pass,
-            role_id: role.id_role ?? 5,
+            role_id: role?.id_role ?? 5,
             created_by: req.session.user,
             created_date: new Date().toISOString(),
             deleted_by: "",
@@ -260,7 +257,7 @@ const createUser = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menambah data user",
 					keterangan: username,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
         ]
@@ -323,7 +320,7 @@ const editUser = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Mengubah data user",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
         ]
@@ -372,7 +369,7 @@ const deleteUser = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menghapus data user",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
         ]

@@ -27,21 +27,41 @@ const LogSparepartModel = sequelize.define('LogSparepartModel', {
         allowNull: false
     },
     stok_awal: {
+        type: DataTypes.INTEGER,
+        autoIncrement: false,
+        allowNull: false
+    },
+    nilai_awal: {
         type: DataTypes.DOUBLE,
         autoIncrement: false,
         allowNull: false
     },
     stok_masuk: {
+        type: DataTypes.INTEGER,
+        autoIncrement: false,
+        allowNull: false
+    },
+    nilai_masuk: {
         type: DataTypes.DOUBLE,
         autoIncrement: false,
         allowNull: false
     },
     stok_keluar: {
+        type: DataTypes.INTEGER,
+        autoIncrement: false,
+        allowNull: false
+    },
+    nilai_keluar: {
         type: DataTypes.DOUBLE,
         autoIncrement: false,
         allowNull: false
     },
     stok_akhir: {
+        type: DataTypes.INTEGER,
+        autoIncrement: false,
+        allowNull: false
+    },
+    nilai_akhir: {
         type: DataTypes.DOUBLE,
         autoIncrement: false,
         allowNull: false

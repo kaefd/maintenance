@@ -81,7 +81,7 @@ const createPenyesuaian = async (req, res) => {
 	wipeData()
 
 	// PAYLOADS
-	const { kode_sparepart, kategori, keterangan, jumlah } = req.body;
+	const { kode_sparepart, kategori, keterangan, jumlah, nilai_total } = req.body;
 	// VALIDASI
 	let validate = await utils.Validate(req, res, [])
 	if(validate) return validate
@@ -127,12 +127,19 @@ const createPenyesuaian = async (req, res) => {
 			},
 			order: [["id_log_sparepart", "DESC"]],
 		});
-		let stok_awal = !log ? "" : log.stok_akhir;
+		const data_sparepart = await Sparepart.findOne({ where: { kode_sparepart: kode_sparepart, status: 'true' }})
+		const nilai = data_sparepart.harga_satuan
 		let mess = kategori == "Barang masuk" ? "Menambah data barang masuk penyesuaian stok" : "Menambah data barang keluar penyesuaian stok"
-		const stok_akhir = kategori == "Barang masuk" ? (stok_awal != "" ? stok_awal + Number(jumlah) : Number(jumlah)) : stok_awal - Number(jumlah);
+		let stok_awal = !log ? "" : log.stok_akhir;
+		let nilai_awal = !log ? "" : log.nilai_akhir;
 		const s_awal = stok_awal != "" ? stok_awal : 0
+		const n_awal = nilai_awal != "" ? nilai_awal : 0
 		const s_masuk = kategori == "Barang masuk" ? Number(jumlah) : 0
+		const n_masuk = kategori == "Barang masuk" ? (nilai_total ?? (Number(nilai) * jumlah)) : 0
 		const s_keluar = kategori == "Barang masuk" ?  0 : Number(jumlah)
+		const n_keluar = kategori == "Barang masuk" ?  0 : (nilai_total ?? (log.nilai_akhir/log.stok_akhir*jumlah))
+		const stok_akhir = kategori == "Barang masuk" ? (stok_awal != "" ? stok_awal + Number(jumlah) : Number(jumlah)) : stok_awal - Number(jumlah);
+		const nilai_akhir = kategori == "Barang masuk" ? n_awal + n_masuk : n_awal - n_keluar
 		config.data = {
 			no_penyesuaian: no_penyesuaian,
 			tgl_penyesuaian: new Date(),
@@ -140,6 +147,7 @@ const createPenyesuaian = async (req, res) => {
 			kategori: kategori,
 			keterangan: keterangan ?? "",
 			jumlah: jumlah,
+			nilai: nilai_total ?? (kategori == "Barang masuk" ? n_masuk : n_keluar),
 			status: "true",
 		}
 		config.time_user_stamp = true
@@ -152,9 +160,13 @@ const createPenyesuaian = async (req, res) => {
 					kategori: kategori,
 					keterangan: no_penyesuaian,
 					stok_awal: s_awal,
+					nilai_awal: n_awal,
 					stok_masuk: s_masuk,
+					nilai_masuk: n_masuk,
 					stok_keluar: s_keluar,
-					stok_akhir: stok_akhir
+					nilai_keluar: n_keluar,
+					stok_akhir: stok_akhir,
+					nilai_akhir: nilai_akhir
 				}
 			},
 			{
@@ -163,7 +175,7 @@ const createPenyesuaian = async (req, res) => {
 					tanggal: new Date(),
 					kategori: mess,
 					keterangan: no_penyesuaian,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]
@@ -171,18 +183,24 @@ const createPenyesuaian = async (req, res) => {
 		const result = await utils.CreateData(req, config, transaction)
 		if(result.error) throw result.error
 
-		wipeData()
-
+		
 		// UPDATE STOK SPAREPART
-		config.model = Sparepart
-		config.PK = "kode_sparepart"
-		config.data = {
-			kode_sparepart: kode_sparepart,
-			stok_akhir: stok_akhir
+		if(kategori == "Barang masuk") {
+
+			wipeData()
+			const n_satuan = nilai_total ? nilai_total/jumlah : nilai
+			// const harga_satuan = (Number(data_sparepart.dataValues.harga_satuan) + Number(nilai))/2
+			config.model = Sparepart
+			config.PK = "kode_sparepart"
+			config.data = {
+				kode_sparepart: kode_sparepart,
+				stok_akhir: stok_akhir,
+				harga_satuan: n_satuan
+			}
+			// POST DATA
+			const updateStok = await utils.UpdateData(req, config, transaction)
+			if(updateStok.error) throw updateStok.error
 		}
-		// POST DATA
-		const updateStok = await utils.UpdateData(req, config, transaction)
-		if(updateStok.error) throw updateStok.error
 		// COMMIT
 		await transaction.commit()
 		res.status(201).json({
@@ -207,7 +225,12 @@ const deletePenyesuaian = async (req, res) => {
 
 	// PARAM
 	const kode = req.params.kode;
-	const penyesuaian = await Penyesuaian.findByPk(kode);
+	const penyesuaian = await Penyesuaian.findOne({
+		where: {
+			no_penyesuaian: kode,
+			status: "true"
+		}
+	});
 	// START TRANSACTION
 	const transaction = await sequelize.transaction()
 	try {
@@ -224,7 +247,7 @@ const deletePenyesuaian = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Membatalkan penyesuaian stok",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]
@@ -244,9 +267,14 @@ const deletePenyesuaian = async (req, res) => {
 			order: [["id_log_sparepart", "DESC"]],
 		});
 		const s_awal = StokByKode.stok_akhir
-		const stok_akhir = penyesuaian.kategori == "Barang masuk" ? (s_awal - penyesuaian.jumlah) : (s_awal + penyesuaian.jumlah)
+		const n_awal = StokByKode.nilai_akhir
+		const nilai = StokByKode.nilai_akhir/StokByKode.stok_akhir
 		const s_masuk = penyesuaian.kategori == "Barang masuk" ? 0 : Number(penyesuaian.jumlah)
+		const n_masuk = penyesuaian.kategori == "Barang masuk" ? 0 : nilai * penyesuaian.jumlah
 		const s_keluar = penyesuaian.kategori == "Barang masuk" ? Number(penyesuaian.jumlah) : 0
+		const n_keluar = penyesuaian.kategori == "Barang masuk" ? nilai * penyesuaian.jumlah : 0
+		const stok_akhir = penyesuaian.kategori == "Barang masuk" ? (s_awal - penyesuaian.jumlah) : (s_awal + penyesuaian.jumlah)
+		const n_akhir = penyesuaian.kategori == "Barang masuk" ? (n_awal - n_keluar) : (n_awal + n_masuk)
 
 		if(stok_akhir < 0 && penyesuaian.kategori == "Barang keluar" ) throw [`Stok ${StokByKode.kode_sparepart} tidak mencukupi`]
 
@@ -260,9 +288,13 @@ const deletePenyesuaian = async (req, res) => {
 			keterangan: kode,
 			kategori: penyesuaian.kategori == "Barang masuk" ? "Batal masuk" : "Batal keluar",
 			stok_awal: s_awal,
+			nilai_awal: n_awal,
 			stok_masuk: s_masuk,
+			nilai_masuk: n_masuk,
 			stok_keluar: s_keluar,
-			stok_akhir: stok_akhir
+			nilai_keluar: n_keluar,
+			stok_akhir: stok_akhir,
+			nilai_akhir: n_akhir
 		}
 
 		let updtStokSp = await utils.CreateData(req, config, transaction)

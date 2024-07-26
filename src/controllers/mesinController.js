@@ -59,7 +59,7 @@ const createMesin = async (req, res) => {
 	wipeData()
 
 	// PAYLOAD
-	const { kode_mesin, nama_mesin, keterangan, tgl_beli, supplier } = req.body;
+	const { kode_mesin, nama_mesin, keterangan, supplier } = req.body;
 	// VALIDASI
 	let validate = await utils.Validate(req, res, [])
 	if(validate) return validate
@@ -85,7 +85,7 @@ const createMesin = async (req, res) => {
 			kode_mesin: kode_mesin.toString(),
 			nama_mesin: nama_mesin.toString(),
 			keterangan: keterangan ?? "",
-			tgl_beli: tgl_beli ?? "",
+			tgl_beli: new Date(),
 			supplier: supplier ?? "",
 			created_by: req.session.user,
 			created_date: new Date().toISOString(),
@@ -100,7 +100,7 @@ const createMesin = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menambahkan data mesin",
 					keterangan: kode_mesin,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			},
 			{
@@ -141,7 +141,7 @@ const editMesin = async (req, res) => {
 	wipeData()
 
 	const kode = req.params.kode;
-	const { nama_mesin, keterangan, tgl_beli, supplier } = req.body;
+	const { nama_mesin, keterangan, supplier } = req.body;
 	// VALIDASI
     let check = [
 		{
@@ -161,7 +161,7 @@ const editMesin = async (req, res) => {
 			kode_mesin: kode,
 			nama_mesin: nama_mesin ?? mesin.nama_mesin,
 			keterangan: keterangan ?? mesin.keterangan,
-			tgl_beli: tgl_beli ?? mesin.tgl_beli,
+			tgl_beli: mesin.tgl_beli,
 			supplier: supplier ?? mesin.supplier,
 		}
 		config.log = [
@@ -171,11 +171,10 @@ const editMesin = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Mengubah data mesin",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]
-		console.log(config);
 		await utils.UpdateData(req, config, transaction)
 		// COMMIT
 		await transaction.commit();
@@ -216,7 +215,7 @@ const deleteMesin = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menghapus data mesin",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]

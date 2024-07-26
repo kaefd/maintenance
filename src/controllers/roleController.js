@@ -86,7 +86,7 @@ const createRole = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menambah data role",
 					keterangan: nama_role,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]
@@ -149,7 +149,7 @@ const editRole = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Mengubah data role",
 					keterangan: nama_role ?? role.nama_role,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]
@@ -191,7 +191,7 @@ const deleteRole = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menghapus Data Role",
 					keterangan: nama_role,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]

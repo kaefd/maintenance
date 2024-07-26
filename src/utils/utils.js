@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 var ntpClient = require('ntp-client')
 const Penyesuaian = require("../models/penyesuaianModel");
 const Masalah = require("../models/masalahModel");
+const Penanganan = require("../models/penangananModel");
 
 const formaterPK = async (subject) => {
 	const th = new Date().getFullYear().toString().slice(2, 4);
@@ -37,6 +38,19 @@ const formaterPK = async (subject) => {
             order: [ ['no_masalah', 'DESC']]
         })
         last = no ? no.no_masalah : ''
+    }
+    if(subject == 'penanganan') {
+        kode = "PGN-" + th + mt;
+        const no = await Penanganan.findOne({
+            limit: 1,
+            where: {
+                no_penanganan: {
+                    [Op.like]: `%${kode}%`,
+                },
+            },
+            order: [ ['no_penanganan', 'DESC']]
+        })
+        last = no ? no.no_penanganan : ''
     }
 	const urut = last != '' ? Number(last.slice(8, 11)) + 1 : 1
 	const kode_urut =

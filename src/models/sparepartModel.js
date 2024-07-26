@@ -27,7 +27,7 @@ const Sparepart = sequelize.define('Sparepart', {
         autoIncrement: false,
         allowNull: true
     },
-    harga_beli: {
+    harga_satuan: {
         type: DataTypes.DOUBLE,
         autoIncrement: false,
         allowNull: true

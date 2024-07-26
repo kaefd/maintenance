@@ -32,6 +32,11 @@ const Penyesuaian = sequelize.define('Penyesuaian', {
         autoIncrement: false,
         allowNull: false
     },
+    nilai: {
+        type: DataTypes.DOUBLE,
+        autoIncrement: false,
+        allowNull: false
+    },
     created_by: {
         type: DataTypes.STRING,
         autoIncrement: false,

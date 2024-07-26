@@ -152,7 +152,7 @@ const createPermission = async (req, res) => {
 						tanggal: new Date(),
 						kategori: "Menambahkan data role permission",
 						keterangan: role.id_role,
-						kode_user: req.session.user,
+						username: req.session.user,
 					}
 				}
 			]
@@ -213,7 +213,7 @@ const editPermission = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Mengubah data permission",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
         ]
@@ -255,7 +255,7 @@ const deletePermission = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menghapus data permission",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]

@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../../connect')
 
-const DetailMasalah = sequelize.define('DetailMasalah', {
-    no_masalah: {
+const PenangananDetail = sequelize.define('PenangananDetail', {
+    no_penanganan: {
         type: DataTypes.STRING,
         autoIncrement: false,
         primaryKey: true
@@ -22,7 +22,7 @@ const DetailMasalah = sequelize.define('DetailMasalah', {
         autoIncrement: false,
         allowNull: true,
     },
-    biaya: {
+    nilai: {
         type: DataTypes.DOUBLE,
         autoIncrement: false,
         allowNull: true,
@@ -34,8 +34,8 @@ const DetailMasalah = sequelize.define('DetailMasalah', {
     },
 },
 {
-    tableName: 'masalah_detail',
+    tableName: 'penanganan_detail',
     timestamps: false
 })
 
-module.exports = DetailMasalah
+module.exports = PenangananDetail

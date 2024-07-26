@@ -11,20 +11,19 @@ Node, Express
 
 | endpoint            | method                                 |
 | :-------------------| :--------------------------------------|
-| [`register`](#register)         | `POST`                                 |
-| [`login`](#login)            | `POST`                                 |
-| [`permission`](#permission)       | `GET` `POST` `PUT` `DELETE`|
-| [`role`](#role)             | `GET` `POST` `PUT` `DELETE`|
-| [`data_user`](#data-user)        | `GET` `POST` `PUT` `DELETE`|
-| [`data_mesin`](#data-mesin)       | `GET` `POST` `PUT` `DELETE`|
-| [`data_sparepart`](#data-sparepart)   | `GET` `POST` `PUT` `DELETE`|
-| [`kategori_masalah`](#kategori-masalah) | `GET` `POST` `PUT` `DELETE`|
-| [`penyesuaian_stok`](#penyesuaian-stok) | `GET` `POST` `DELETE`          |
-| [`masalah`](#masalah)          | `GET` `POST` `DELETE`          |
-| [`masalah_detail`](#detail-masalah)   | `GET` `POST` `DELETE`          |
-| [`log_mesin`](#log-mesin)        | `GET`                                  |
-| [`log_sparepart`](#log-sparepart)    | `GET`                                  |
-| [`log_user`](#log-user)         | `GET`                                  |
+| [register](#register)         | `POST`                                 |
+| [login](#login)            | `POST`                                 |
+| [role](#role)             | `GET` `POST` `PUT` `DELETE`|
+| [data_user](#data-user)        | `GET` `POST` `PUT` `DELETE`|
+| [data_mesin](#data-mesin)       | `GET` `POST` `PUT` `DELETE`|
+| [data_sparepart](#data-sparepart)   | `GET` `POST` `PUT` `DELETE`|
+| [kategori_masalah](#kategori-masalah) | `GET` `POST` `PUT` `DELETE`|
+| [penyesuaian_stok](#penyesuaian-stok) | `GET` `POST` `DELETE`          |
+| [masalah](#masalah)          | `GET` `POST` `DELETE`          |
+| [penanganan_detail](#penanganan-detail)   | `GET` `POST` `DELETE`          |
+| [log_mesin](#log-mesin)        | `GET`                                  |
+| [log_sparepart](#log-sparepart)    | `GET`                                  |
+| [log_user](#log-user)         | `GET`                                  |
 
 
 
@@ -77,154 +76,6 @@ NOTE: new user must be activated by admin
     "token": token
 }
 ```
-
-### Permission
-#### Get All Data
-- Header
-```
-  GET /api/permission
-```
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `token` | `string` | **Required**. Your API key |
-| `page`    | `number` | default: 1 |
-| `limit`   | `number` | default: 10 |
-
-- Response
-```
-{
-  "status": "success",
-  "code": 200,
-  "data": [
-    {
-      "method": String,
-      "table": String,
-      "nama_role": String
-    }
-  ],
-  "pagination": {
-    "currentPage": Number,
-    "itemsPerPage": Number,
-    "totalItems": Number,
-    "totalPages": Number
-  }
-}
-```
-#### Get data
-- Header
-```
-  GET /api/permission/${id}
-```
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `token` | `string` | **Required**. Your API key        |
-| `id`      | `string` | **Required**. Id of item to fetch |
-- Response
-```
-{
-  "status": "success",
-  "code": 200,
-  "data": {
-      "role_id": Number
-      "method": String,
-      "table": String,
-      "nama_role": String
-    },
-  "pagination": {
-    "currentPage": Number,
-    "itemsPerPage": Number,
-    "totalItems": Number,
-    "totalPages": Number
-  }
-}
-```
-#### Create data
-- Header
-```
-  POST /api/permission
-```
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `token` | `string` | **Required**. Your API key |
-
-- Body
-```
-{
-    "role_id": Number,
-    "nama_role": String,
-    "method": {
-      "READ": Boolean,
-      "CREATE": Boolean,
-      "EDIT": Boolean,
-      "DELETE": Boolean,
-    },
-    "table": String
-} 
-```
-- Response
-```
-{
-  "status": "success",
-  "code": 201,
-  "message": [
-    "Berhasil menambahkan data"
-  ],
-}
-```
-#### Update Data
-- Header
-```
-  PUT /api/permission/${id}
-```
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `token` | `string` | **Required**. Your API key |
-| `id`      | `string` | **Required**. id of item to fetch |
-
-- Body
-```
-{
-    "role_id": Number,
-    "nama_role": String,
-    "method": {
-      "READ": Boolean,
-      "CREATE": Boolean,
-      "EDIT": Boolean,
-      "DELETE": Boolean,
-    },
-    "table": String
-} 
-```
-- Response
-```
-{
-  "status": "success",
-  "code": 201,
-  "message": [
-    "Berhasil mengubah data"
-  ],
-}
-```
-#### Delete data
-- Header
-```
-  DELETE /api/permission/${id}
-```
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `token` | `string` | **Required**. Your API key |
-| `id`      | `string` | **Required**. id of item to fetch |
-
-- Response
-```
-{
-  "status": "success",
-  "code": 201,
-  "message": [
-    "Berhasil menghapus data"
-  ],
-}
-```
 ### Role
 #### Get All Data
 - Header
@@ -244,6 +95,7 @@ NOTE: new user must be activated by admin
   "code": 200,
   "data": [
     {
+      "id_role": String,
       "nama_role": String
     }
   ],
@@ -270,6 +122,7 @@ NOTE: new user must be activated by admin
   "status": "success",
   "code": 200,
   "data": {
+      "id_role": String,
       "nama_role": String
     },
   "pagination": {
@@ -297,6 +150,7 @@ NOTE: new user must be activated by admin
   "code": 200,
   "data": [
     {
+      "id_role": String,
       "nama_role": String
     }
   ],
@@ -332,6 +186,7 @@ NOTE: new user must be activated by admin
     "Berhasil menambahkan data"
   ],
   "data": {
+    "id_role": String,
     "nama_role": String
   }
 }
@@ -358,7 +213,7 @@ NOTE: new user must be activated by admin
   "status": "success",
   "code": 201,
   "message": [
-    "Berhasil mengubah data"
+    "Role berhasil diupdate"
   ],
 }
 ```
@@ -378,7 +233,7 @@ NOTE: new user must be activated by admin
   "status": "success",
   "code": 201,
   "message": [
-    "Berhasil menghapus data"
+    "Data berhasil dihapus"
   ],
 }
 ```
@@ -685,9 +540,9 @@ NOTE: new user must be activated by admin
 {
   "kode_mesin": String
   "nama_mesin": String
-  "keterangan": String
-  "tgl_beli": String,
-  "supplier": String,
+  "keterangan": String 
+  "tgl_beli": String, 
+  "supplier": String, 
 }
 ```
 - Response
@@ -786,7 +641,7 @@ NOTE: new user must be activated by admin
       "merk": String,
       "tipe": String,
       "satuan": String,
-      "harga_beli": Number,
+      "harga_satuan": Number,
       "stok_minus": Number,
       "stok_akhir": Number,
       "created_by": String,
@@ -824,7 +679,7 @@ NOTE: new user must be activated by admin
       "merk": String,
       "tipe": String,
       "satuan": String,
-      "harga_beli": Number,
+      "harga_satuan": Number,
       "stok_minus": Number,
       "stok_akhir": Number,
       "created_by": String,
@@ -863,7 +718,7 @@ NOTE: new user must be activated by admin
       "merk": String,
       "tipe": String,
       "satuan": String,
-      "harga_beli": Number,
+      "harga_satuan": Number,
       "stok_minus": Number,
       "stok_akhir": Number,
       "created_by": String,
@@ -898,7 +753,7 @@ NOTE: new user must be activated by admin
   "merk": String,
   "tipe": String,
   "satuan": String,
-  "harga_beli": Number,
+  "harga_satuan": Number,
   "stok_minus": Number,
   "status": String
 }
@@ -917,7 +772,7 @@ NOTE: new user must be activated by admin
       "merk": String,
       "tipe": String,
       "satuan": String,
-      "harga_beli": Number,
+      "harga_satuan": Number,
       "stok_minus": Number,
       "stok_akhir": Number,
       "created_by": String,
@@ -926,7 +781,6 @@ NOTE: new user must be activated by admin
       "deleted_date": String,
       "status": String
     },
-  ],
 }
 ```
 #### Update Data
@@ -942,12 +796,11 @@ NOTE: new user must be activated by admin
 - Body
 ```
 {
-  "kode_sparepart": String,
   "nama_sparepart": String,
   "merk": String,
   "tipe": String,
   "satuan": String,
-  "harga_beli": Number,
+  "harga_satuan": Number,
   "stok_minus": Number,
   "status": String
 }
@@ -970,7 +823,7 @@ NOTE: new user must be activated by admin
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token`   | `string` | **Required**. Your API key |
-| `kode_sparepart`      | `string` | **Required**. kode_sparepart of item to fetch |
+| `kode_sparepart`     | `string` | **Required**. kode_sparepart of item to fetch |
 
 - Response
 ```
@@ -1001,6 +854,7 @@ NOTE: new user must be activated by admin
   "code": 200,
   "data": [
     {
+      "id_kategori": String,
       "nama_kategori": String
     },
   ],
@@ -1027,6 +881,7 @@ NOTE: new user must be activated by admin
   "status": "success",
   "code": 200,
   "data": {
+      "id_kategori": String,
       "nama_kategori": String
     },
   "pagination": {
@@ -1054,6 +909,7 @@ NOTE: new user must be activated by admin
   "code": 200,
   "data": [
     {
+      "id_kategori": String,
       "nama_kategori": String
     },
   ],
@@ -1141,7 +997,7 @@ NOTE: new user must be activated by admin
   ],
 }
 ```
-### Penyesuaian stok_akhir
+### Penyesuaian stok
 #### Get All Data
 - Header
 ```
@@ -1166,6 +1022,7 @@ NOTE: new user must be activated by admin
       "kategori": String,
       "keterangan": String,
       "jumlah": Number,
+      "nilai": Number,
       "created_by": String,
       "created_date": String,
       "deleted_by": String,
@@ -1202,6 +1059,7 @@ NOTE: new user must be activated by admin
       "kategori": String,
       "keterangan": String,
       "jumlah": Number,
+      "nilai": Number,
       "created_by": String,
       "created_date": String,
       "deleted_by": String,
@@ -1268,8 +1126,9 @@ NOTE: new user must be activated by admin
 {
   "kode_sparepart": String,
   "kategori": String,
-  "keterangan": String,
+  "keterangan": String, 
   "jumlah": Number,
+  "niali_total": Number, 
 }
 ```
 - Response
@@ -1293,7 +1152,6 @@ NOTE: new user must be activated by admin
       "deleted_date": String,
       "status": String
     }
-  ],
 }
 ```
 #### Delete data
@@ -1340,13 +1198,8 @@ NOTE: new user must be activated by admin
       "nama_kategori": String,
       "tgl_masalah": String,
       "kode_mesin": String,
-      "penyebab": String,
       "keterangan_masalah": String,
-      "penanganan": String,
-      "tgl_penanganan": String,
-      "total_biaya": Number,
       "created_by": String,
-      "user_penanganan": String,
       "created_date": String,
       "deleted_by": String,
       "deleted_date": String,
@@ -1381,13 +1234,8 @@ NOTE: new user must be activated by admin
       "nama_kategori": String,
       "tgl_masalah": String,
       "kode_mesin": String,
-      "penyebab": String,
       "keterangan_masalah": String,
-      "penanganan": String,
-      "tgl_penanganan": String,
-      "total_biaya": Number,
       "created_by": String,
-      "user_penanganan": String,
       "created_date": String,
       "deleted_by": String,
       "deleted_date": String,
@@ -1423,13 +1271,8 @@ NOTE: new user must be activated by admin
       "nama_kategori": String,
       "tgl_masalah": String,
       "kode_mesin": String,
-      "penyebab": String,
       "keterangan_masalah": String,
-      "penanganan": String,
-      "tgl_penanganan": String,
-      "total_biaya": Number,
       "created_by": String,
-      "user_penanganan": String,
       "created_date": String,
       "deleted_by": String,
       "deleted_date": String,
@@ -1459,8 +1302,7 @@ NOTE: new user must be activated by admin
 {
   "nama_kategori": String,
   "kode_mesin": String,
-  "penyebab": String,
-  "keterangan_masalah": String,
+  "keterangan_masalah": String, 
 }
 ```
 - Response
@@ -1476,20 +1318,14 @@ NOTE: new user must be activated by admin
       "nama_kategori": String,
       "tgl_masalah": String,
       "kode_mesin": String,
-      "penyebab": String,
       "keterangan_masalah": String,
-      "penanganan": String,
-      "tgl_penanganan": String,
-      "total_biaya": Number,
       "created_by": String,
-      "user_penanganan": String,
       "created_date": String,
       "deleted_by": String,
       "deleted_date": String,
       "status": String,
       "nama_mesin": String,
     }
-  ],
 }
 ```
 #### Delete Masalah
@@ -1512,11 +1348,11 @@ NOTE: new user must be activated by admin
   ],
 }
 ```
-### Detail Masalah
+### Penanganan
 #### Get All Data
 - Header
 ```
-  GET /api/masalah_detail
+  GET /api/penanganan
 ```
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
@@ -1531,12 +1367,13 @@ NOTE: new user must be activated by admin
   "code": 200,
   "data": [
      {
+      "no_penanganan": String,
       "no_masalah": String,
-      "no_urut": String,
-      "kode_sparepart": String,
-      "jumlah": Number,
-      "biaya": Number,
-      "keterangan": String
+      "tgl_penanganan": Date,
+      "nama_penanganan": String,
+      "total_nilai": Number,
+      "user_input": String,
+      "status": String,
     }
   ],
   "pagination": {
@@ -1550,58 +1387,26 @@ NOTE: new user must be activated by admin
 #### Get data
 - Header
 ```
-  GET /api/masalah_detail/${no_masalah}
+  GET /api/penanganan/${no_penanganan}
 ```
 | Parameter | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
 | `token` | `string` | **Required**. Your API key        |
-| `no_masalah`      | `string` | **Required**. no_masalah of item to fetch |
+| `no_penanganan`      | `string` | **Required**. no_penanganan of item to fetch |
 - Response
 ```
 {
   "status": "success",
   "code": 200,
   "data": {
+      "no_penanganan": String,
       "no_masalah": String,
-      "no_urut": String,
-      "kode_sparepart": String,
-      "jumlah": Number,
-      "biaya": Number,
-      "keterangan": String
+      "tgl_penanganan": Date,
+      "nama_penanganan": String,
+      "total_nilai": Number,
+      "user_input": String,
+      "status": String,
     },
-  "pagination": {
-    "currentPage": Number,
-    "itemsPerPage": Number,
-    "totalItems": Number,
-    "totalPages": Number
-  }
-}
-```
-#### Search data
-- Header
-```
-  GET /api/masalah_detail/search
-```
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `token` | `string` | **Required**. Your API key |
-| `search`  | `string` | **Required**. search to fetch data|
-
-- Response
-```
-{
-  "status": "success",
-  "code": 200,
-  "data": [
-    {
-      "no_masalah": String,
-      "no_urut": String,
-      "kode_sparepart": String,
-      "jumlah": Number,
-      "biaya": Number,
-      "keterangan": String
-    }
-  ],
   "pagination": {
     "currentPage": Number,
     "itemsPerPage": Number,
@@ -1613,7 +1418,7 @@ NOTE: new user must be activated by admin
 #### Create Penanganan
 - Header
 ```
-  POST /api/masalah_detail/${no_masalah}
+  POST /api/penanganan/${no_masalah}
 ```
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
@@ -1625,15 +1430,10 @@ NOTE: new user must be activated by admin
 {
   "penanganan": String,
   "detail": [
-    "kode_sparepart": String,
-    "jumlah": Number,
-    "keterangan": String
+    "nama_penanganan": String,
+    "detail": Array object 
   ]
 }
-```
-Note: *detail is optional
-```
-
 ```
 - Response
 ```
@@ -1644,34 +1444,25 @@ Note: *detail is optional
     "Berhasil menambahkan data"
   ],
   data: {
+      "no_penanganan": String,
       "no_masalah": String,
-      "nama_kategori": String,
-      "tgl_masalah": String,
-      "kode_mesin": String,
-      "penyebab": String,
-      "keterangan_masalah": String,
-      "penanganan": String,
-      "tgl_penanganan": String,
-      "total_biaya": Number,
-      "created_by": String,
-      "user_penanganan": String,
-      "created_date": String,
-      "deleted_by": String,
-      "deleted_date": String,
+      "tgl_penanganan": Date,
+      "nama_penanganan": String,
+      "total_nilai": Number,
+      "user_input": String,
       "status": String,
-      "nama_mesin": String,
     }
 }
 ```
 #### Delete Penanganan
 - Header
 ```
-  DELETE /api/masalah_detail/${no_masalah}
+  DELETE /api/penanganan/${no_penanganan}
 ```
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
 | `token`   | `string` | **Required**. Your API key |
-| `no_masalah`      | `string` | **Required**. no_masalah of item to fetch |
+| `no_penanganan`      | `string` | **Required**. no_penanganan of item to fetch |
 
 - Response
 ```
@@ -1681,6 +1472,73 @@ Note: *detail is optional
   "message": [
     "Berhasil membatalkan penanganan"
   ],
+}
+```
+### Penanganan Detail
+#### Get All Data
+- Header
+```
+  GET /api/penanganan_detail
+```
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `token` | `string` | **Required**. Your API key |
+| `page`    | `number` | default: 1 |
+| `limit`   | `number` | default: 10 |
+
+- Response
+```
+{
+  "status": "success",
+  "code": 200,
+  "data": [
+     {
+      "no_penanganan": String,
+      "no_urut": String,
+      "kode_sparepart": String,
+      "jumlah": Number,
+      "nilai": Number,
+      "keterangan": String
+      "nama_sparepart": String
+    }
+  ],
+  "pagination": {
+    "currentPage": Number,
+    "itemsPerPage": Number,
+    "totalItems": Number,
+    "totalPages": Number
+  }
+}
+```
+#### Get data
+- Header
+```
+  GET /api/penanganan_detail/${no_masalah}
+```
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `token` | `string` | **Required**. Your API key        |
+| `no_penanganan`      | `string` | **Required**. no_penanganan of item to fetch |
+- Response
+```
+{
+  "status": "success",
+  "code": 200,
+  "data": {
+      "no_penanganan": String,
+      "no_urut": String,
+      "kode_sparepart": String,
+      "jumlah": Number,
+      "nilai": Number,
+      "keterangan": String
+      "nama_sparepart": String
+    },
+  "pagination": {
+    "currentPage": Number,
+    "itemsPerPage": Number,
+    "totalItems": Number,
+    "totalPages": Number
+  }
 }
 ```
 ### Log Mesin
@@ -1805,9 +1663,13 @@ Note: *detail is optional
       "kategori": String,
       "keterangan": String,
       "stok_awal": Number,
+      "nilai_awal": Number,
       "stok_masuk": Number,
+      "nilai_masuk": Number,
       "stok_keluar": Number,
+      "nilai_keluar": Number,
       "stok_akhir": Number
+      "nilai_akhir": Number
     }
   ],
   "pagination": {
@@ -1838,9 +1700,13 @@ Note: *detail is optional
       "kategori": String,
       "keterangan": String,
       "stok_awal": Number,
+      "nilai_awal": Number,
       "stok_masuk": Number,
+      "nilai_masuk": Number,
       "stok_keluar": Number,
+      "nilai_keluar": Number,
       "stok_akhir": Number
+      "nilai_akhir": Number
     },
   "pagination": {
     "currentPage": Number,
@@ -1872,9 +1738,13 @@ Note: *detail is optional
       "kategori": String,
       "keterangan": String,
       "stok_awal": Number,
+      "nilai_awal": Number,
       "stok_masuk": Number,
+      "nilai_masuk": Number,
       "stok_keluar": Number,
+      "nilai_keluar": Number,
       "stok_akhir": Number
+      "nilai_akhir": Number
     }
   ],
   "pagination": {
@@ -1905,7 +1775,7 @@ Note: *detail is optional
   "data": [
      {
       "tanggal": String,
-      "kode_user": String,
+      "username": String,
       "kategori": String,
       "keterangan": String
     },
@@ -1934,7 +1804,7 @@ Note: *detail is optional
   "code": 200,
   "data": {
       "tanggal": String,
-      "kode_user": String,
+      "username": String,
       "kategori": String,
       "keterangan": String
     },
@@ -1964,7 +1834,7 @@ Note: *detail is optional
   "data": [
     {
       "tanggal": String,
-      "kode_user": String,
+      "username": String,
       "kategori": String,
       "keterangan": String
     }

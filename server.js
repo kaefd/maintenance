@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const app = express();
 const sequelize = require('./connect');
+const helmet = require("helmet")
 const routes = require('./src/routes/index');
 const config = require('./src/middleware/config');
 
@@ -13,6 +14,7 @@ sequelize.sync({ force: false })
     console.error('Error synchronizing database:', error);
   });
 
+app.use(helmet())
 app.use(express.json());
 app.use(session({
   secret: config.secret,

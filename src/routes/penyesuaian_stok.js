@@ -9,7 +9,6 @@ router.get(
 	"/",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'penyesuaian_stok_sparepart'),
 	],
 	penyesuaianController.getAll
 );
@@ -17,7 +16,6 @@ router.get(
 	"/search",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'penyesuaian_stok_sparepart'),
 	],
 	penyesuaianController.getSearch
 );
@@ -26,7 +24,6 @@ router.get(
 	"/:no_penyesuaian",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'penyesuaian_stok_sparepart'),
 	],
 	penyesuaianController.getByKode
 );
@@ -35,7 +32,6 @@ router.post(
 	"",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('CREATE', 'penyesuaian_stok_sparepart'),
 		// validasi
 		body("kode_sparepart").notEmpty().withMessage("Sparepart tidak boleh kosong"),
 		body("kategori").notEmpty().withMessage("Kategori tidak boleh kosong"),
@@ -52,7 +48,6 @@ router.delete(
 	"/:kode",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('DELETE', 'penyesuaian_stok_sparepart'),
 	],
 	penyesuaianController.deletePenyesuaian
 );

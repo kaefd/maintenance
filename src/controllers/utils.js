@@ -26,7 +26,10 @@ const GetData = async (config, res) => {
         const whereCondition = config.whereCondition
         const model = config.model
         // GET ALL DATA
-        let allData = await model.findAll({ where: whereCondition })
+        let allData = await model.findAll({ 
+            where: whereCondition,
+            include: config.include ?? null
+         })
         allData = allData.map(i => i.dataValues)
 
         // LIMIT, PAGE & OFFSET
@@ -65,6 +68,13 @@ const GetData = async (config, res) => {
         if(config.modelAssociation) {
             for (let i = 0; i < config.include.length; i++) {
                 data = data.map(el => {
+                    let newObject = {
+                        ...el,
+                        [config.include[i].attributes]: el[config.include[i].strModel][config.include[i].attributes]
+                    }
+                    return Object.fromEntries(Object.entries(newObject).filter(([key]) => key != config.include[i].strModel));
+                })
+                allData = allData.map(el => {
                     let newObject = {
                         ...el,
                         [config.include[i].attributes]: el[config.include[i].strModel][config.include[i].attributes]
@@ -221,7 +231,7 @@ const CreateData = async (req, config, transaction) => {
             data.created_by = req.session.user
             data.created_date = new Date()
             data.deleted_by = ""
-            data.deleted_date = ""
+            data.deleted_date = new Date(1)
         }
         let result = await model.create(data, {transaction: transaction})
 

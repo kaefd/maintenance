@@ -10,7 +10,6 @@ router.get(
 	"/",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'log_mesin'),
 	],
 	logMesinController.getAll
 );
@@ -18,7 +17,6 @@ router.get(
 	"/search",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('READ', 'log_mesin'),
 	],
 	logMesinController.getSearch
 );

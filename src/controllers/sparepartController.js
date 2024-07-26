@@ -61,7 +61,7 @@ const createSparepart = async (req, res) => {
     wipeData()
 
     // PAYLOADS
-    const { kode_sparepart, nama_sparepart, merk, tipe, jumlah, harga_beli, stok_minus } = req.body
+    const { kode_sparepart, nama_sparepart, satuan, merk, tipe, stok_akhir, harga_satuan, stok_minus } = req.body
     // VALIDASI
     let validate = await utils.Validate(req, res, [])
 	if(validate) return validate
@@ -82,7 +82,7 @@ const createSparepart = async (req, res) => {
     const transaction = await sequelize.transaction()
     // CREATE DATA
     try {
-        let harga = harga_beli ?? 0
+        let harga = Number(harga_satuan) ?? 0
         let stok = stok_minus ?? 0
 
         config.time_user_stamp = true
@@ -91,10 +91,10 @@ const createSparepart = async (req, res) => {
             nama_sparepart: nama_sparepart ?? "",
             merk: merk ?? "",
             tipe: tipe ?? "",
-            satuan: "PCS",
-            harga_beli: harga,
+            satuan: satuan ?? "PCS",
+            harga_satuan: harga,
             stok_minus: stok,
-            stok_akhir: jumlah ?? 0,
+            stok_akhir: stok_akhir ?? 0,
             status: "true"
         }
         config.log = [
@@ -104,7 +104,7 @@ const createSparepart = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menambahkan data sparepart",
 					keterangan: kode_sparepart,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			},
             {
@@ -115,10 +115,13 @@ const createSparepart = async (req, res) => {
                     kategori: "Barang masuk",
                     keterangan: kode_sparepart,
                     stok_awal: 0,
-                    stok_masuk: jumlah,
+                    nilai_awal: 0,
+                    stok_masuk: stok_akhir ?? 0,
+                    nilai_masuk: harga * stok_akhir,
                     stok_keluar: 0,
-                    stok_akhir: jumlah
-
+                    nilai_keluar: 0,
+                    stok_akhir: stok_akhir ?? 0,
+                    nilai_akhir: harga * stok_akhir
                 }
             }
         ]
@@ -151,7 +154,7 @@ const editSparepart = async (req, res) => {
     
     // PAYLOADS
     const kode = req.params.kode
-    const { nama_sparepart, merk, tipe, satuan, harga_beli, stok_minus } = req.body
+    const { nama_sparepart, merk, tipe, stok_minus, harga_satuan } = req.body
     // VALIDASI
     let check = [
 		{
@@ -172,9 +175,9 @@ const editSparepart = async (req, res) => {
             nama_sparepart: nama_sparepart ?? sparepart.nama_sparepart,
             merk: merk ?? sparepart.merk,
             tipe: tipe ?? sparepart.tipe,
-            satuan: satuan ?? sparepart.satuan,
-            harga_beli: harga_beli ?? sparepart.harga_beli,
-            stok_minus: stok_minus ?? sparepart.stok_minus,
+            satuan: sparepart.satuan,
+            harga_satuan: harga_satuan ?? sparepart.harga_satuan,
+            stok_minus: Number(stok_minus) ?? sparepart.stok_minus,
         }
         config.log = [
             {
@@ -183,7 +186,7 @@ const editSparepart = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Mengubah data sparepart",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
         ]
@@ -228,7 +231,7 @@ const deleteSparepart = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menghapus data sparepart",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
         ]

@@ -11,7 +11,7 @@ const LogUser = sequelize.define('LogUser', {
         type: DataTypes.DATE,
         autoIncrement: false,
     },
-    kode_user: {
+    username: {
         type: DataTypes.STRING,
         autoIncrement: false,
         allowNull: false,

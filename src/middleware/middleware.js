@@ -1,8 +1,5 @@
 const jwt = require('jsonwebtoken');
 const config = require('./config');
-const UserModel = require('../models/userModel');
-const RoleModel = require('../models/RoleModel');
-const PermissionModel = require('../models/permissionModel');
 
 const authenticateToken = (req, res, next) => {
   // GET TOKEN
@@ -20,22 +17,22 @@ const authenticateToken = (req, res, next) => {
   })
 }
 
-const authUser = (method, table) => {
-  return async (req, res, next) => {
-    const role = await UserModel.findByPk(req.session.user)
-    const isAllow = await PermissionModel.findOne({
-      where: {
-        method: method,
-        table: table,
-        role_id: role.role_id
-      }
-    })
-    if(!isAllow) return res.sendStatus(403)
-    next()
-  }
-}
+// const authUser = (method, table) => {
+//   return async (req, res, next) => {
+//     const role = await UserModel.findByPk(req.session.user)
+//     const isAllow = await PermissionModel.findOne({
+//       where: {
+//         method: method,
+//         table: table,
+//         role_id: role.role_id
+//       }
+//     })
+//     if(!isAllow) return res.sendStatus(403)
+//     next()
+//   }
+// }
 
 module.exports = {
     authenticateToken,
-    authUser
+    // authUser
 }

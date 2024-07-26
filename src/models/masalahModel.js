@@ -22,42 +22,27 @@ const Masalah = sequelize.define('Masalah', {
         autoIncrement: false,
         allowNull: true,
     },
-    penyebab: {
-        type: DataTypes.STRING,
-        autoIncrement: false,
-        allowNull: false
-    },
     keterangan_masalah: {
         type: DataTypes.TEXT,
         autoIncrement: false,
         allowNull: false
-    },
-    penanganan: {
-        type: DataTypes.TEXT,
-        autoIncrement: false,
-        allowNull: true
-    },
-    tgl_penanganan: {
-        type: DataTypes.DATE,
-        autoIncrement: false,
-        allowNull: true
-    },
-    total_biaya: {
-        type: DataTypes.DOUBLE,
-        autoIncrement: false,
-        allowNull: true
     },
     created_by: {
         type: DataTypes.STRING,
         autoIncrement: false,
         allowNull: false
     },
-    user_penanganan: {
+    created_date: {
+        type: DataTypes.DATE,
+        autoIncrement: false,
+        allowNull: false
+    },
+    finish_by: {
         type: DataTypes.STRING,
         autoIncrement: false,
         allowNull: false
     },
-    created_date: {
+    finish_date: {
         type: DataTypes.DATE,
         autoIncrement: false,
         allowNull: false
@@ -80,7 +65,7 @@ const Masalah = sequelize.define('Masalah', {
     
 },
 {
-    tableName: 'masalah_head',
+    tableName: 'masalah',
     timestamps: false
 })
 

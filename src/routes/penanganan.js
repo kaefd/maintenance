@@ -3,25 +3,47 @@ const express = require('express');
 const { body } = require('express-validator');
 const router = express.Router();
 
-const masalahController = require('../controllers/masalahController');
+const penangananController = require('../controllers/penangananController');
 const authenticate = require("../middleware/middleware");
 
+router.get(
+	"/",
+	[
+		authenticate.authenticateToken,
+	],
+	penangananController.getAll
+);
+router.get(
+	"/search",
+	[
+		authenticate.authenticateToken,
+	],
+	penangananController.getSearch
+);
+// get by pk
+router.get(
+	"/:no_penanganan",
+	[
+		authenticate.authenticateToken,
+	],
+	penangananController.getByKode
+);
+// create penanganan
 router.post(
 	"/:no_masalah",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('CREATE', 'masalah_detail'),
-		body("penanganan").notEmpty().withMessage("Penanganan tidak bolek kosong"),
+		body("nama_penanganan").notEmpty().withMessage("Penanganan tidak bolek kosong"),
 	],
-	masalahController.createPenanganan
+	penangananController.createPenanganan
 );
+// delete penanganan
 router.delete(
-	"/:no_masalah",
+	"/:no_penanganan",
 	[
 		authenticate.authenticateToken,
-		authenticate.authUser('DELETE', 'masalah_detail'),
 	],
-	masalahController.deletePenanganan
+	penangananController.deletePenanganan
 );
 
 

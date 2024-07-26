@@ -88,7 +88,7 @@ const createKategori = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menambahkan kategori masalah",
 					keterangan: nama_kategori,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]
@@ -146,7 +146,7 @@ const editKategori = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Mengubah kategori masalah",
 					keterangan: nama_kategori,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]
@@ -185,7 +185,7 @@ const deleteKategori = async (req, res) => {
 					tanggal: new Date(),
 					kategori: "Menghapus kategori masalah",
 					keterangan: kode,
-					kode_user: req.session.user,
+					username: req.session.user,
 				}
 			}
 		]
